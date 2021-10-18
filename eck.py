@@ -6,7 +6,7 @@ class ECK:
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * file COPYING or https://github.com/isakruas/ecc/blob/master/LICENSE.*
+    * https://github.com/isakruas/ecc/blob/master/LICENSE                 *
     ***********************************************************************/
 
     https://en.wikipedia.org/wiki/Elliptic-curve_cryptography
