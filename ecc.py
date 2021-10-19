@@ -5,8 +5,8 @@ class ECC:
     * Distributed under the MIT software license, see the accompanying    *
     * https://github.com/isakruas/ecc/blob/master/LICENSE                 *
     ***********************************************************************/
-
-    Supported curves: secp192k1, secp192r1, secp224k1, secp224r1, secp256k1, secp256r1, secp384r1, secp521r1
+    Supported curves: secp192k1, secp192r1, secp224k1, secp224r1, secp256k1,
+    secp256r1, secp384r1, secp521r1
     """
 
     # https://www.secg.org/sec2-v2.pdf
@@ -121,6 +121,16 @@ class ECC:
     def h(self):
         return self.parameters.get(self.__curve, self.parameters.get('secp256k1'))[5]
 
+    def gcd(self, m, n):
+        """
+        https://en.wikipedia.org/wiki/Euclidean_algorithm
+        """
+
+        if m < n:
+            m, n = (n, m)
+        if n == 0: return m
+        return self.gcd(n, m % n)
+
     def egcd(self, m, n):
         """
         https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
@@ -157,8 +167,7 @@ class ECC:
         if P == Q:
 
             # 3*x_1**2+a (mod p)
-            dy = pow(3, 1, self.p) * pow(x_1, 2, self.p) + \
-                pow(self.a, 1, self.p)
+            dy = pow(3, 1, self.p) * pow(x_1, 2, self.p) + pow(self.a, 1, self.p)
 
             # x_1**(p-2) (mod p) (inverso modular)
             # dx = pow(2 * y_1, p - 2, p)
