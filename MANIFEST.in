@@ -1,0 +1,5 @@
+include setup.toml
+
+include *.md
+
+include setup.py

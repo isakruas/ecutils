@@ -3,7 +3,7 @@ class ECC:
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ecc/blob/master/LICENSE                 *
+    * https://github.com/isakruas/ecc/blob/master/LICENSE.md              *
     ***********************************************************************/
     Supported curves: secp192k1, secp192r1, secp224k1, secp224r1, secp256k1,
     secp256r1, secp384r1, secp521r1
@@ -121,7 +121,7 @@ class ECC:
     def h(self):
         return self.parameters.get(self.__curve, self.parameters.get('secp256k1'))[5]
 
-    def gcd(self, m, n):
+    def gcd(self, m: int, n: int) -> int:
         """
         https://en.wikipedia.org/wiki/Euclidean_algorithm
         """
@@ -131,7 +131,7 @@ class ECC:
         if n == 0: return m
         return self.gcd(n, m % n)
 
-    def egcd(self, m, n):
+    def egcd(self, m: int, n: int) -> tuple:
         """
         https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
         """
@@ -144,7 +144,7 @@ class ECC:
             y = p - q * (m // n)
         return (d, x, y)
 
-    def mmi(self, m, n):
+    def mmi(self, m: int, n: int) -> int:
         """
         https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
         """
@@ -155,7 +155,7 @@ class ECC:
         else:
             return x % n
 
-    def dot(self, P, Q):
+    def dot(self, P: tuple, Q: tuple) -> tuple:
         """
         https://en.wikipedia.org/wiki/Elliptic_curve
         """
@@ -207,11 +207,11 @@ class ECC:
 
             return (int(x_3), int(y_3))
 
-    def trapdoor(self, G, k):
+    def trapdoor(self, G: tuple, k: int) -> tuple:
         """
         https://en.wikipedia.org/wiki/Trapdoor_function
         """
-
+        
         if k == 0 or k >= self.n:
             raise ValueError('k is not in 0 < k < n')
 
