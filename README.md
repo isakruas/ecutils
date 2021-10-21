@@ -1,8 +1,9 @@
-# _Elliptic Curve Cryptography_
+# Elliptic Curve Cryptography
 ## Features
 - ECC
 - ECDH
 - ECK
+- ECDSA
 
 ### ECC
 > Elementary mathematical operations on the curves secp192k1, secp192r1, secp224k1, secp224r1, secp256k1, secp256r1, secp384r1, secp521r1
@@ -53,8 +54,8 @@ k = 2
 trapdoor = ecc.trapdoor(ecc.G, k)
 
 assert trapdoor == dot
-
 ```
+
 ### ECDH
 > Protocol implementation
 
@@ -101,4 +102,28 @@ encode = eck.encode(m=message, a=alpha)
 decode = eck.decode(m=encode, a=alpha)
 
 assert message == decode
+```
+
+### ECDSA
+> Protocol implementation
+
+| Methods | README |
+| ------ | ------ |
+| create | https://pt.wikipedia.org/wiki/ECDSA |
+| verify | https://pt.wikipedia.org/wiki/ECDSA |
+
+```python
+from ecc.ecdsa import ECDSA
+
+message = 123457
+
+private_key = 7
+
+ecdsa = ECDSA(curve='secp192k1', private_key=private_key)
+
+curve, r, s, public_key = ecdsa.create(message)
+
+verify = ecdsa.verify(message, r, s, public_key)
+
+assert verify == True
 ```
