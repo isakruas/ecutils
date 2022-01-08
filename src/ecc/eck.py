@@ -35,8 +35,8 @@ class ECK(ECC):
         while True:
             x = (d * m + j) % p
             s = (x ** 3 + A * x + B) % p
-            if s == pow(s, int((p + 1) / 2), p):
-                y = pow(s, int((p + 1) / 4), p)
+            if s == pow(s, (p + 1) // 2, p):
+                y = pow(s, (p + 1) // 4, p)
                 break
             j += 1
         return x, y, j
