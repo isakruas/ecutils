@@ -89,17 +89,23 @@ assert rute_shares_with_sibele == sibele_shares_with_rute
 ```python
 from ecc.eck import ECK
 
-# Message to be encoded
-message = 'Hello World!'
-
-# Arbitrary parameters
-alpha = 12
-
 eck = ECK(curve='secp521r1')
 
-encode = eck.encode(m=message, a=alpha)
+# Message (up to 64 bytes) to be encoded
+message = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit integer.'
 
-decode = eck.decode(m=encode, a=alpha)
+encode = eck.encode(message)
+
+decode  = eck.decode(encode)
+
+assert message == decode
+
+# Message (up to 32 bytes) to be encoded
+message = message[0:32]
+
+encode = eck.encode(message, e=32)
+
+decode  = eck.decode(encode, e=32)
 
 assert message == decode
 ```
@@ -121,7 +127,11 @@ private_key = 7
 
 ecdsa = ECDSA(curve='secp192k1', private_key=private_key)
 
-curve, r, s, public_key = ecdsa.create(message)
+public_key = ecdsa.public_key
+# (5370475959698699548314844898721723603195636604449975017091, 4063159672567797276483870227243726761721476925977179091340)
+
+r, s = ecdsa.create(message)
+# 3896243893660249727180523716996124911121694637270467027687 4776385274595455509621853448773273410465218979854252522627
 
 verify = ecdsa.verify(message, r, s, public_key)
 

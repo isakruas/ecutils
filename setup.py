@@ -7,7 +7,7 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='ecc',
-    version='0.0.1.dev5',
+    version='0.0.1.dev6',
     description='Elliptic Curve Cryptography',
     long_description=long_description,
     long_description_content_type='text/markdown',

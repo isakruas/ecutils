@@ -49,7 +49,7 @@ class ECDSA(ECC):
 
             s = ((message + r * self.private_key) * (self.mmi(k, self.n))) % self.n
 
-        return (self.__curve, r, s, self.public_key)
+        return r, s
 
     def verify(self, message: int, r: int, s: int, public_key: tuple) -> bool:
 
