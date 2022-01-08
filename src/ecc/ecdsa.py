@@ -12,7 +12,7 @@ class ECDSA(ECC):
     https://pt.wikipedia.org/wiki/ECDSA
     """
 
-    def __init__(self, private_key: int = None, curve: str = None) -> None:
+    def __init__(self, private_key: int = None, curve: str = None, **kwargs) -> None:
         super().__init__(curve=curve)
         if curve is None:
             self.__curve = 'secp256k1'
@@ -35,7 +35,7 @@ class ECDSA(ECC):
             return self.__public_key
         return self.__public_key
 
-    def create(self, message: int) -> tuple:
+    def signature(self, message: int) -> tuple:
 
         (r, s) = (0, 0)
 
@@ -51,7 +51,7 @@ class ECDSA(ECC):
 
         return r, s
 
-    def verify(self, message: int, r: int, s: int, public_key: tuple) -> bool:
+    def verify_signature(self, message: int, r: int, s: int, public_key: tuple) -> bool:
 
         P = self.trapdoor(self.G, (message * self.mmi(s, self.n)) % self.n)
 

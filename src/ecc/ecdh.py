@@ -12,7 +12,7 @@ class ECDH(ECC):
     https://en.wikipedia.org/wiki/Elliptic-curve_Diffie-Hellman
     """
 
-    def __init__(self, private_key: int, curve: str = None) -> None:
+    def __init__(self, private_key: int, curve: str = None, **kwargs) -> None:
         super().__init__(curve=curve)
         self.__private_key = private_key
         self.__public_key = None

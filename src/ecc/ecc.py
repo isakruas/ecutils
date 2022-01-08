@@ -95,7 +95,7 @@ class ECC:
 
     }
 
-    def __init__(self, curve: str() = None) -> None:
+    def __init__(self, curve: str() = None, **kwargs) -> None:
         self.__curve = curve
 
     @property

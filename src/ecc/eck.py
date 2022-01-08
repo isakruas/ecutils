@@ -12,7 +12,7 @@ class ECK(ECC):
     https://doi.org/10.1090/S0025-5718-1987-0866109-5
     """
 
-    def __init__(self, curve: str = None) -> None:
+    def __init__(self, curve: str = None, **kwargs) -> None:
         super().__init__(curve=curve)
 
     def encode(self, m: str, e: int = 64) -> tuple:
