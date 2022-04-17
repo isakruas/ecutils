@@ -3,7 +3,7 @@ class EC:
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
+    * https://github.com/isakruas/ecutils/blob/master/LICENSE.md          *
     ***********************************************************************/
     Supported curves: secp192k1, secp192r1, secp224k1, secp224r1, secp256k1,
     secp256r1, secp384r1, secp521r1

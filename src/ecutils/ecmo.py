@@ -1,7 +1,7 @@
-from ectools.ec import EC
-from ectools.ecdh import ECDH
-from ectools.eck import ECK
-from ectools.ecdsa import ECDSA
+from ecutils.ec import EC
+from ecutils.ecdh import ECDH
+from ecutils.eck import ECK
+from ecutils.ecdsa import ECDSA
 
 
 class ECMO(ECDH, ECK, ECDSA, EC):
@@ -10,7 +10,7 @@ class ECMO(ECDH, ECK, ECDSA, EC):
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
+    * https://github.com/isakruas/ecutils/blob/master/LICENSE.md          *
     ***********************************************************************/
 
     Reference: https://en.wikipedia.org/wiki/Three-pass_protocol

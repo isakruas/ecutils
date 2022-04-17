@@ -1,7 +1,7 @@
-# Elliptic Curve Tools
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/isakruas/ectools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ectools/context:python)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/isakruas/ectools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ectools/alerts/)
-[![Latest Version](https://img.shields.io/pypi/v/ectools.svg?style=flat)](https://pypi.python.org/pypi/ectools/)
+# Elliptic Curve Utils
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/isakruas/ecutils.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ecutils/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/isakruas/ecutils.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ecutils/alerts/)
+[![Latest Version](https://img.shields.io/pypi/v/ecutils.svg?style=flat)](https://pypi.python.org/pypi/ecutils/)
 ## Features
 - EC
 - ECDH
@@ -23,7 +23,7 @@
 #### Usage
 
 ```python
-from ectools import EC
+from ecutils import EC
 
 # Specify the curve to be used, if you omit the secp224k1 standard curve will be chosen
 ec = EC(curve='secp192k1')
@@ -34,7 +34,7 @@ assert gcd == 3
 
 gcd, x, y = ec.egcd(ec.a, ec.p)
 
-assert ec.a*x + ec.b*y == ec.gcd(ec.a, ec.b)
+assert ec.a * x + ec.b * y == ec.gcd(ec.a, ec.b)
 
 mmi = ec.mmi(ec.b, ec.p)
 
@@ -48,9 +48,9 @@ Q = ec.G
 dot = ec.dot(P, Q)
 
 assert dot == (
-                5898748710631235793867485368048681928976741514058866965686,
-                6215318586565457819081644608453878670902049430638930374357
-              )
+    5898748710631235793867485368048681928976741514058866965686,
+    6215318586565457819081644608453878670902049430638930374357
+)
 
 k = 2
 
@@ -67,9 +67,8 @@ assert trapdoor == dot
 | ------ | ------ |
 | to_share | https://en.wikipedia.org/wiki/Elliptic-curve_Diffie-Hellman |
 
-
 ```python
-from ectools import ECDH
+from ecutils import ECDH
 
 rute = ECDH(private_key=7, curve='secp192k1')
 
@@ -91,7 +90,7 @@ assert rute_shares_with_sibele == sibele_shares_with_rute
 | decode | https://en.wikipedia.org/wiki/Elliptic-curve_cryptography |
 
 ```python
-from ectools import ECK
+from ecutils import ECK
 
 eck = ECK(curve='secp521r1')
 
@@ -100,7 +99,7 @@ message = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit integer.'
 
 encode = eck.encode(message)
 
-decode  = eck.decode(encode)
+decode = eck.decode(encode)
 
 assert message == decode
 
@@ -109,7 +108,7 @@ message = message[0:32]
 
 encode = eck.encode(message, encode=32)
 
-decode  = eck.decode(encode, encode=32)
+decode = eck.decode(encode, encode=32)
 
 assert message == decode
 ```
@@ -123,7 +122,7 @@ assert message == decode
 | verify | https://pt.wikipedia.org/wiki/ECDSA |
 
 ```python
-from ectools import ECDSA
+from ecutils import ECDSA
 
 message = 123457
 
@@ -151,7 +150,7 @@ assert verify is True
 | decrypt | |
 
 ```python
-from ectools import ECMO
+from ecutils import ECMO
 
 rute = ECMO(private_key=3)
 

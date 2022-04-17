@@ -1,4 +1,4 @@
-from ectools.ec import EC
+from ecutils.ec import EC
 from random import randint
 
 
@@ -7,7 +7,7 @@ class ECDSA(EC):
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
+    * https://github.com/isakruas/ecutils/blob/master/LICENSE.md          *
     ***********************************************************************/
 
     Reference: https://pt.wikipedia.org/wiki/ECDSA
