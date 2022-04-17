@@ -1,12 +1,15 @@
-# Elliptic Curve Cryptography
+# Elliptic Curve Tools
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/isakruas/ectools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ectools/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/isakruas/ectools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ectools/alerts/)
+[![Latest Version](https://img.shields.io/pypi/v/ectools.svg?style=flat)](https://pypi.python.org/pypi/ectools/)
 ## Features
-- ECC
+- EC
 - ECDH
 - ECK
 - ECDSA
 - ECMO
 
-### ECC
+### EC
 > Elementary mathematical operations on the curves secp192k1, secp192r1, secp224k1, secp224r1, secp256k1, secp256r1, secp384r1, secp521r1
 
 | Methods | README |
@@ -20,29 +23,29 @@
 #### Usage
 
 ```python
-from ecc.ecc import ECC
+from ectools import EC
 
 # Specify the curve to be used, if you omit the secp224k1 standard curve will be chosen
-ecc = ECC(curve='secp192k1')
+ec = EC(curve='secp192k1')
 
-gcd = ecc.gcd(ecc.a, ecc.b)
+gcd = ec.gcd(ec.a, ec.b)
 
 assert gcd == 3
 
-gcd, x, y = ecc.egcd(ecc.a, ecc.p)
+gcd, x, y = ec.egcd(ec.a, ec.p)
 
-assert ecc.a*x + ecc.b*y == ecc.gcd(ecc.a, ecc.b)
+assert ec.a*x + ec.b*y == ec.gcd(ec.a, ec.b)
 
-mmi = ecc.mmi(ecc.b, ecc.p)
+mmi = ec.mmi(ec.b, ec.p)
 
 assert mmi == 4184734490257787175890526282138444277401570296306493027365
 
-P = ecc.G
+P = ec.G
 
-Q = ecc.G
+Q = ec.G
 
 # P + Q
-dot = ecc.dot(P, Q)
+dot = ec.dot(P, Q)
 
 assert dot == (
                 5898748710631235793867485368048681928976741514058866965686,
@@ -52,7 +55,7 @@ assert dot == (
 k = 2
 
 # k * G, G = (x, y) in Fp
-trapdoor = ecc.trapdoor(ecc.G, k)
+trapdoor = ec.trapdoor(ec.G, k)
 
 assert trapdoor == dot
 ```
@@ -66,7 +69,7 @@ assert trapdoor == dot
 
 
 ```python
-from ecc.ecdh import ECDH
+from ectools import ECDH
 
 rute = ECDH(private_key=7, curve='secp192k1')
 
@@ -88,7 +91,7 @@ assert rute_shares_with_sibele == sibele_shares_with_rute
 | decode | https://en.wikipedia.org/wiki/Elliptic-curve_cryptography |
 
 ```python
-from ecc.eck import ECK
+from ectools import ECK
 
 eck = ECK(curve='secp521r1')
 
@@ -104,9 +107,9 @@ assert message == decode
 # Message (up to 32 bytes) to be encoded
 message = message[0:32]
 
-encode = eck.encode(message, e=32)
+encode = eck.encode(message, encode=32)
 
-decode  = eck.decode(encode, e=32)
+decode  = eck.decode(encode, encode=32)
 
 assert message == decode
 ```
@@ -120,7 +123,7 @@ assert message == decode
 | verify | https://pt.wikipedia.org/wiki/ECDSA |
 
 ```python
-from ecc.ecdsa import ECDSA
+from ectools import ECDSA
 
 message = 123457
 
@@ -136,7 +139,7 @@ r, s = ecdsa.signature(message)
 
 verify = ecdsa.verify_signature(message, r, s, public_key)
 
-assert verify == True
+assert verify is True
 ```
 
 ### ECMO
@@ -148,7 +151,7 @@ assert verify == True
 | decrypt | |
 
 ```python
-from ecc.ecmo import ECMO
+from ectools import ECMO
 
 rute = ECMO(private_key=3)
 

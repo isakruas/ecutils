@@ -1,15 +1,16 @@
-from ecc.ecc import ECC
+from ectools.ec import EC
 from random import randint
 
 
-class ECDSA(ECC):
+class ECDSA(EC):
     """
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ecc/blob/master/LICENSE.md              *
+    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
     ***********************************************************************/
-    https://pt.wikipedia.org/wiki/ECDSA
+
+    Reference: https://pt.wikipedia.org/wiki/ECDSA
     """
 
     def __init__(self, private_key: int = None, curve: str = None, **kwargs) -> None:

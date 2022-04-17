@@ -1,19 +1,19 @@
-from ecc.ecc import ECC
-from ecc.ecdh import ECDH
-from ecc.eck import ECK
-from ecc.ecdsa import ECDSA
+from ectools.ec import EC
+from ectools.ecdh import ECDH
+from ectools.eck import ECK
+from ectools.ecdsa import ECDSA
 
 
-class ECMO(ECDH, ECK, ECDSA, ECC):
+class ECMO(ECDH, ECK, ECDSA, EC):
 
     """
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ecc/blob/master/LICENSE.md              *
+    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
     ***********************************************************************/
 
-    https://en.wikipedia.org/wiki/Three-pass_protocol
+    Reference: https://en.wikipedia.org/wiki/Three-pass_protocol
     """
 
     def __init__(self, private_key: int) -> None:

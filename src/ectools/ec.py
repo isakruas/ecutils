@@ -1,15 +1,16 @@
-class ECC:
+class EC:
     """
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ecc/blob/master/LICENSE.md              *
+    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
     ***********************************************************************/
     Supported curves: secp192k1, secp192r1, secp224k1, secp224r1, secp256k1,
     secp256r1, secp384r1, secp521r1
+
+    Reference: https://www.secg.org/sec2-v2.pdf
     """
 
-    # https://www.secg.org/sec2-v2.pdf
     parameters = {
 
         'secp192k1': [
@@ -95,7 +96,7 @@ class ECC:
 
     }
 
-    def __init__(self, curve: str() = None, **kwargs) -> None:
+    def __init__(self, curve: str = None, **kwargs) -> None:
         self.__curve = curve
 
     @property
@@ -124,7 +125,7 @@ class ECC:
 
     def gcd(self, m: int, n: int) -> int:
         """
-        https://en.wikipedia.org/wiki/Euclidean_algorithm
+        Reference: https://en.wikipedia.org/wiki/Euclidean_algorithm
         """
 
         if m < n:
@@ -134,7 +135,7 @@ class ECC:
 
     def egcd(self, m: int, n: int) -> tuple:
         """
-        https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+        Reference: https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
         """
 
         if n == 0:
@@ -147,7 +148,7 @@ class ECC:
 
     def mmi(self, m: int, n: int) -> int:
         """
-        https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
+        Reference: https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
         """
 
         d, x, _ = self.egcd(m, n)
@@ -158,7 +159,7 @@ class ECC:
 
     def dot(self, P: tuple, Q: tuple) -> tuple:
         """
-        https://en.wikipedia.org/wiki/Elliptic_curve
+        Reference: https://en.wikipedia.org/wiki/Elliptic_curve
         """
 
         (x_1, y_1) = P
@@ -177,6 +178,7 @@ class ECC:
             m = dy * dx
 
             if not m:
+                # infinity point
                 return None, None
 
             # m**2-(x_1+x_2) (mod p)
@@ -198,6 +200,7 @@ class ECC:
             m = u * v
 
             if not m:
+                # infinity point
                 return None, None
 
             # m**2-(x_1+x_2) (mod p)
@@ -210,7 +213,7 @@ class ECC:
 
     def trapdoor(self, G: tuple, k: int) -> tuple:
         """
-        https://en.wikipedia.org/wiki/Trapdoor_function
+        Reference: https://en.wikipedia.org/wiki/Trapdoor_function
         """
 
         if k == 0 or k >= self.n:

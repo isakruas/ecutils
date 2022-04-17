@@ -1,30 +1,30 @@
-from ecc.ecc import ECC
+from ectools.ec import EC
 
 
-class ECK(ECC):
+class ECK(EC):
     """
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ecc/blob/master/LICENSE.md              *
+    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
     ***********************************************************************/
 
-    https://doi.org/10.1090/S0025-5718-1987-0866109-5
+    Reference: https://doi.org/10.1090/S0025-5718-1987-0866109-5
     """
 
     def __init__(self, curve: str = None, **kwargs) -> None:
         super().__init__(curve=curve)
 
-    def encode(self, m: str, e: int = 64) -> tuple:
+    def encode(self, message: str, encode: int = 64) -> tuple:
         # 32 or 64 bytes
-        if e == 32:
-            m = m[0:32]
+        if encode == 32:
+            m = message[0:32]
             b = 2 ** 16
-        elif e == 64:
-            m = m[0:64]
+        elif encode == 64:
+            m = message[0:64]
             b = 2 ** 8
         else:
-            raise ValueError('e=32 or e=64')
+            raise ValueError('encode=32 or encode=64')
         A = self.a
         B = self.b
         p = self.p
@@ -41,12 +41,14 @@ class ECK(ECC):
             j += 1
         return x, y, j
 
-    def decode(self, P: tuple, e: int = 64) -> str:
+    def decode(self, P: tuple, encode: int = 64) -> str:
         # 32 or 64 bytes
-        if e == 32:
+        if encode == 32:
             b = 2 ** 16
-        elif e == 64:
+        elif encode == 64:
             b = 2 ** 8
+        else:
+            raise ValueError('encode=32 or encode=64')
         x, _, j = P
         x = x - j
         d = 100

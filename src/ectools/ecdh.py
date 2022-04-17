@@ -1,15 +1,15 @@
-from ecc.ecc import ECC
+from ectools.ec import EC
 
 
-class ECDH(ECC):
+class ECDH(EC):
     """
     /***********************************************************************
     * Copyright (c) 2021 Isak Ruas                                        *
     * Distributed under the MIT software license, see the accompanying    *
-    * https://github.com/isakruas/ecc/blob/master/LICENSE.md              *
+    * https://github.com/isakruas/ectools/blob/master/LICENSE.md          *
     ***********************************************************************/
 
-    https://en.wikipedia.org/wiki/Elliptic-curve_Diffie-Hellman
+    Reference: https://en.wikipedia.org/wiki/Elliptic-curve_Diffie-Hellman
     """
 
     def __init__(self, private_key: int, curve: str = None, **kwargs) -> None:

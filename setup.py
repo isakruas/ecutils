@@ -6,12 +6,12 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
-    name='ecc',
-    version='0.0.1.dev8',
-    description='Elliptic Curve Cryptography',
+    name='ectools',
+    version='0.0.1.dev0',
+    description='Elliptic Curve Tools',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/isakruas/ecc',
+    url='https://github.com/isakruas/ectools',
     author='Isak Paulo de Andrade Ruas',
     license='MIT',
     author_email='isakruas@gmail.com',
@@ -22,13 +22,13 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.8',
     ],
-    keywords='ecc, elliptic curve, cryptography, elliptic curve cryptography',
+    keywords='ectools, ec, ecdh, eck, ecdsa, ecmo',
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
     python_requires='>=3.8',
     install_requires=[],
     project_urls={
-        'Bug Reports': 'https://github.com/isakruas/ecc/issues',
-        'Source': 'https://github.com/isakruas/ecc/',
+        'Bug Reports': 'https://github.com/isakruas/ectools/issues',
+        'Source': 'https://github.com/isakruas/ectools/',
     },
 )
