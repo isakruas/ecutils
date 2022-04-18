@@ -7,7 +7,7 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='ecutils',
-    version='0.0.1.dev0',
+    version='0.0.1.dev1',
     description='Elliptic Curve Utils',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -30,5 +30,6 @@ setup(
     project_urls={
         'Bug Reports': 'https://github.com/isakruas/ecutils/issues',
         'Source': 'https://github.com/isakruas/ecutils/',
+        'Documentation': 'https://ecutils.readthedocs.io/en/latest/',
     },
 )

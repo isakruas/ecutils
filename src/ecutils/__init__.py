@@ -5,9 +5,9 @@ from ecutils.ecdsa import ECDSA
 from ecutils.ecmo import ECMO
 
 __all__ = [
-    EC,
-    ECDH,
-    ECK,
-    ECDSA,
-    ECMO
+    'EC',
+    'ECDH',
+    'ECK',
+    'ECDSA',
+    'ECMO'
 ]

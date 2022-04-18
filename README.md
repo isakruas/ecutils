@@ -1,4 +1,5 @@
 # Elliptic Curve Utils
+[![Documentation Status](https://readthedocs.org/projects/ecutils/badge/?version=latest)](https://ecutils.readthedocs.io/en/latest/?badge=latest)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/isakruas/ecutils.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ecutils/context:python)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/isakruas/ecutils.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/isakruas/ecutils/alerts/)
 [![Latest Version](https://img.shields.io/pypi/v/ecutils.svg?style=flat)](https://pypi.python.org/pypi/ecutils/)

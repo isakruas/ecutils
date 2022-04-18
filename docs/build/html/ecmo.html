@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECMO &mdash; ecutils 0.0.1.dev0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ECK" href="eck.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> ecutils
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ec.html">EC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ecdh.html">ECDH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ecdsa.html">ECDSA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eck.html">ECK</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ECMO</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ecutils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>ECMO</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ecmo.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ecmo">
+<h1>ECMO<a class="headerlink" href="#ecmo" title="Permalink to this headline"></a></h1>
+<p>Protocol implementation</p>
+<p>Reference: <a class="reference external" href="https://en.wikipedia.org/wiki/Three-pass_protocol">https://en.wikipedia.org/wiki/Three-pass_protocol</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ECMO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ECMO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ECDH</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ECK</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ECDSA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EC</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ECMO" title="Permalink to this definition"></a></dt>
+<dd><dl class="py function">
+<dt class="sig sig-object py" id="ECMO.encrypt">
+<span class="sig-name descname"><span class="pre">encrypt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#ECMO.encrypt" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ECMO.decrypt">
+<span class="sig-name descname"><span class="pre">decrypt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">got</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ECMO.decrypt" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ecutils</span> <span class="kn">import</span> <span class="n">ECMO</span>
+
+<span class="n">rute</span> <span class="o">=</span> <span class="n">ECMO</span><span class="p">(</span><span class="n">private_key</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">sibele</span> <span class="o">=</span> <span class="n">ECMO</span><span class="p">(</span><span class="n">private_key</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+
+<span class="c1"># Message (up to 64 bytes) to be encoded</span>
+<span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Lorem ipsum dolor sit amet, consectetur adipiscing elit integer.&#39;</span>
+
+<span class="n">rute_encrypt_message</span> <span class="o">=</span> <span class="n">rute</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">sibele</span><span class="o">.</span><span class="n">public_key</span><span class="p">)</span>
+<span class="c1"># (((1857240550913749511311933146838018859984049385437909475627815302394196392116794951261872948498796224129013364419509543345205163345179842089331125585436362058,3506705573297651839782379747688631207619938669499243895588664759776552259047523714413709830928492585032896255416492668464023541566300767978601214470798534284),0),(832900723057219226235832309951309634564790965766619142337135688003093158580593783030642442689816243439307777897892309485599092775426838123977430011908592689,2725867211280709369559739856531799838050999097103997378962089699490760618311262626053354235740994426084376348161197462998112431752885856911722361899927310419))</span>
+
+<span class="n">sibele_decrypt_message</span> <span class="o">=</span> <span class="n">sibele</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">rute_encrypt_message</span><span class="p">,</span> <span class="n">got</span><span class="o">=</span><span class="n">rute</span><span class="o">.</span><span class="n">public_key</span><span class="p">)</span>
+<span class="c1"># &#39;Lorem ipsum dolor sit amet, consectetur adipiscing elit integer.&#39;</span>
+
+<span class="k">assert</span> <span class="n">message</span> <span class="o">==</span> <span class="n">sibele_decrypt_message</span>
+
+<span class="c1"># Message (up to 32 bytes) to be encoded</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">32</span><span class="p">]</span>
+
+<span class="n">rute_encrypt_message</span> <span class="o">=</span> <span class="n">rute</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">sibele</span><span class="o">.</span><span class="n">public_key</span><span class="p">,</span> <span class="n">encode</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="c1"># (((5514905102432971215032059168811599118609678263301496051616006183391286555697379035644243244429999155050824946116976394271676504022270025209979760865557105792, 3616882871789765664390196373675698268226539885126786831225333519076362402850831381514218685912486878712017969901932410182658098975714449511865640394996534438), 0), (704698789382865060147247327627501049009276566478897869842535881827504579525028882135386414981317402850240733513907097487477960975455036937131797327078159252, 695017146506462800084983558343280494117631989946851182810895058155576557979783716414590026260278050690043546398655256933740435522352516282285460869540420509))</span>
+
+<span class="n">sibele_decrypt_message</span> <span class="o">=</span> <span class="n">sibele</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">rute_encrypt_message</span><span class="p">,</span> <span class="n">got</span><span class="o">=</span><span class="n">rute</span><span class="o">.</span><span class="n">public_key</span><span class="p">,</span> <span class="n">encode</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="c1"># &#39;Lorem ipsum dolor sit amet, cons&#39;</span>
+
+<span class="k">assert</span> <span class="n">message</span> <span class="o">==</span> <span class="n">sibele_decrypt_message</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="eck.html" class="btn btn-neutral float-left" title="ECK" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Isak Paulo de Andrade Ruas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
