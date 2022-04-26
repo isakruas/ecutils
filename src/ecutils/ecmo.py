@@ -4,7 +4,7 @@ from ecutils.eck import ECK
 from ecutils.ecdsa import ECDSA
 
 
-class ECMO(ECDH, ECK, ECDSA, EC):
+class ECMO(ECDH, ECK, ECDSA, EC):  # lgtm[py/conflicting-attributes] lgtm[py/missing-call-to-init]
 
     """
     /***********************************************************************
