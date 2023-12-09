@@ -27,7 +27,7 @@ dependencies = []
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/isakruas/ecutils"
+Homepage = "https://ecutils.readthedocs.io/en/latest/"
 Documentation = "https://ecutils.readthedocs.io/en/latest/"
 Repository = "https://github.com/isakruas/ecutils.git"
 "Bug Tracker" = "https://github.com/isakruas/ecutils/issues"
