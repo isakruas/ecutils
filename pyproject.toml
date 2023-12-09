@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ecutils"
+description = "Elliptic Curve Utils"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE.md", content-type = "text/markdown"}
+keywords = ["ecutils", "ec", "ecdh", "eck", "ecdsa", "ecmo"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.8",
+]
+authors = [
+  {name = "Isak Paulo de Andrade Ruas", email = "isakruas@gmail.com"},
+  {name = "Celimar Reijane Alves Damasceno Paiva", email = "celimar.damasceno@ifnmg.edu.br"},
+]
+maintainers = [
+  {name = "Isak Paulo de Andrade Ruas", email = "isakruas@gmail.com"}
+]
+requires-python = ">=3.8"
+dependencies = []
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/isakruas/ecutils"
+Documentation = "https://ecutils.readthedocs.io/en/latest/"
+Repository = "https://github.com/isakruas/ecutils.git"
+"Bug Tracker" = "https://github.com/isakruas/ecutils/issues"
+Changelog = "https://github.com/isakruas/ecutils/blob/master/CHANGELOG.md"
+
+[tool.hatch.package]
+source-dir = "src"
+
+[tool.hatch.version]
+path = "src/ecutils/__init__.py"
