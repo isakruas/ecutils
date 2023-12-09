@@ -7,3 +7,5 @@ venv/
 .coverage
 htmlcov/
 site/
+.pypirc
+dist/
