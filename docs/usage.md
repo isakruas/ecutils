@@ -1,78 +1,73 @@
-# Usage
+# Practical Guide
 
-This section provides basic guidance and example snippets for utilizing the `ecutils` library, which assists with Elliptic Curve Cryptography (ECC) related operations. Following these examples will help you integrate EC components such as Koblitz encoding, digital signatures, and Diffie-Hellman key exchanges into your applications.
+Discover how to harness the power of the `ecutils` library in the examples below. With `ecutils`, you can take your applications to the next level by using Elliptic Curve Cryptography (ECC) for tasks like encoding messages, verifying signatures, and establishing secure communication channels. Let's get started!
 
-For more detailed information on specific modules and their functionalities, refer to the corresponding sections in this documentation.
+### Encoding Messages with Koblitz
 
-## Encoding Messages with Koblitz
-
-The Koblitz module allows you to encode plaintext messages into points on an elliptic curve, providing a layer of cryptographic security for textual data.
-
-Example:
+Convert plain text into secure elliptic curve points with the Koblitz method. Here's the process:
 
 ```python
+# First, initialize the Koblitz with your chosen ECC curve.
 from ecutils.algorithms import Koblitz
 
-# Initialize the Koblitz encoder with a named ECC curve.
 koblitz = Koblitz(curve_name='secp192k1')
 
-# Encode a message into an elliptic curve point.
+# Now, let's encode a message into a point on the curve.
 message = 'Hello, world!'
 encoded_point, j = koblitz.encode(message)
 
-# `encoded_point` is now a tuple (x, y) representing a point on the curve.
-# `j` is an integer used for accurately decoding the message later.
+# 'encoded_point' is now on the curve, and 'j' will aid in decoding later on.
 ```
 
-## Generating Digital Signatures
+### Generating Digital Signatures
 
-Using the Digital Signature module, you can generate secure and verifiable signatures for messages to ensure their authenticity and integrity.
-
-Example:
+Assure the authenticity and integrity of your messages with digital signatures. Here's how you can create one:
 
 ```python
+# Start by getting your securely generated ECDSA private key.
 from ecutils.algorithms import DigitalSignature
 
-# Define an ECDSA private key (should be generated securely).
 private_key = 123456789
 
-# Use a cryptographic hash function on the message first.
+# A good practice is to hash the message prior to signing.
 message = 'Secure communication'
 message_hash = hash(message)
 
-# Create an instance of DigitalSignature with your private key.
+# Instantiate a Digital Signature with your private key.
 ds = DigitalSignature(private_key)
 
-# Generate the signature for the message hash.
+# Time to sign the message's hash.
 r, s = ds.generate_signature(message_hash)
 
-# `r` and `s` constitute the digital signature for the given message hash.
+# Your signature, comprised of 'r' and 's', is prepared to confirm your message's authenticity.
 ```
 
-## Performing the Diffie-Hellman Key Exchange
+### Participating in Diffie-Hellman Key Exchange
 
-The Diffie-Hellman module enables two parties to establish a shared secret key over an insecure channel without exchanging their private keys, an essential process for secure two-way communication.
-
-Example:
+Diffie-Hellman protocol is essential for creating a shared secret over an insecure channel without exposing private keys. Here's how it works:
 
 ```python
+# You'll need private keys for two participants.
 from ecutils.protocols import DiffieHellman
 
-# Initialize Diffie-Hellman instances with private keys for Alice and Bob.
 alice_private = 12345
 bob_private = 67890
 
+# Set up instances for Alice and Bob.
 alice_dh = DiffieHellman(alice_private)
 bob_dh = DiffieHellman(bob_private)
 
-# Alice computes the shared secret using Bob's public key.
+# Alice computes a shared secret using Bob's public key.
 alice_shared_secret = alice_dh.compute_shared_secret(bob_dh.public_key)
 
-# Bob computes the shared secret using Alice's public key.
+# Bob does the same with Alice's public key.
 bob_shared_secret = bob_dh.compute_shared_secret(alice_dh.public_key)
 
-# The shared secrets obtained by Alice and Bob (`alice_shared_secret` and
-# `bob_shared_secret`) should now be the same, enabling secure communication.
+# Ideally, Alice and Bob now have the same shared secret.
 ```
 
-Utilize these examples as a starting guide for incorporating ECC operations in your applications, whether it's for encoding textual data onto elliptic curves, securing messages with digital signatures, or safely exchanging cryptographic keys using the Diffie-Hellman protocol.
+These examples should help you integrate ECC features into your projects. Whether you wish to safely encode data, create and verify signatures, or establish secure communication, `ecutils` is here to help.
+
+Remember to peruse the `ecutils` documentation for specific details. With `ecutils` in your toolkit, you're equipped to enhance your applications' security. Happy coding!
+
+In our upcoming sessions, we'll delve into each of the package's classes to expand your understanding of `ecutils` and its array of capabilities. Stay tuned!
