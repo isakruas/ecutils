@@ -1,46 +1,65 @@
 # Point
 
-The `Point` class is a crucial component of the ECUtils module, representing a point on an elliptic curve which is the foundational element in elliptic curve-based cryptographic algorithms. The points on elliptic curves are used for various operations, such as point addition and scalar multiplication, which underpin the security of Elliptic Curve Cryptography (ECC).
+The `Point` class represents an individual point on an elliptic curve, which is a key component in Elliptic Curve Cryptography (ECC). In ECC, operations like point addition and scalar multiplication are performed with these points.
 
-## Description
+### Attributes
 
-In ECC, a `Point` typically consists of two coordinates `(x, y)` that satisfy the elliptic curve equation `y^2 = x^3 + ax + b`. These points can be added together or multiplied by a scalar to create new points on the curve. The `Point` class encapsulates this pair of coordinates along with other functionality necessary for ECC operations.
+- `x`: This is the x-coordinate of the point. It can be any integer within the finite field, or it can be `None` if the point represents the point at infinity.
+- `y`: This is the y-coordinate, which, similarly to the x-coordinate, can either be any integer within the finite field or `None` for the point at infinity.
 
-## Attributes
+### Creating a Point
 
-- **x** (Optional[int]): The x-coordinate of the point. This attribute represents the horizontal position of the point on the elliptic curve. If not provided, it defaults to `None`, which can represent the point at infinity for certain operations.
-- **y** (Optional[int]): The y-coordinate of the point. This attribute represents the vertical position of the point on the elliptic curve. Similar to `x`, if not provided, it may signify the point at infinity.
-
-## Initialization
-
-To initialize a `Point`, you can provide the x and y coordinates as integer values. If either coordinate is not provided, the `Point` instance will represent a special point at infinity.
-
-## Example Usage
-
-The following example demonstrates how to create an instance of the `Point` class with specific x and y coordinates, thus defining a point on the elliptic curve.
+When you need to create a `Point`, you provide the `x` and `y` coordinates like this:
 
 ```python
 from ecutils.core import Point
 
-# Instantiate a new Point
-p = Point(x=10, y=20)
-
-# Accessing the coordinates
-print(f"The point has x-coordinate {p.x} and y-coordinate {p.y}.")
+# Create a point with specific coordinates
+point = Point(x=3, y=5)
+print(f"Point coordinates: ({point.x}, {point.y})")
 ```
 
-After creating a `Point`, it can be used in various operations specific to elliptic curves, such as adding it to another point or multiplying it by a scalar.
+### Example: Verifying a Point on a Curve
 
-## Additional Considerations
+Here's how you could verify whether a point lies on a specific curve:
 
-When working with `Point` objects:
+```python
+from ecutils.core import EllipticCurve, Point
 
-- Always ensure that the provided coordinates `(x, y)` actually lie on the intended elliptic curve, as not all pairs of coordinates correspond to valid points on the curve.
-- Be aware that the arithmetic of `Point` instances must adhere to the rules specific to elliptic curves, which differ from typical Cartesian coordinate arithmetic.
-- If dealing with cryptographic applications, be careful with operations that involve points at infinity as they can affect the security properties of the ECC algorithms.
+# Curve parameters
+p = 23
+a = 1
+b = 1
+G = Point(0, 1)  # Base point
+n = 28
+h = 1
 
-## Points at Infinity
+# Instantiate the curve
+curve = EllipticCurve(p=p, a=a, b=b, G=G, n=n, h=h)
 
-In elliptic curve groups, the point at infinity acts as the identity element, which is akin to the number zero in regular arithmetic. When a `Point` instance doesn't have specific `(x, y)` coordinates provided, it can be used to represent this identity element in ECC computations.
+# Point to be checked
+point_to_check = Point(x=1, y=7)
 
-Incorporating the `Point` class into elliptic curve cryptographic schemes allows for a robust and secure implementation of ECC methods, forming the basis for encryption, digital signatures, and key exchange protocols.
+# Check whether the point is on the curve
+is_on_curve = curve.is_point_on_curve(point_to_check)
+print(f"Is the point ({point_to_check.x}, {point_to_check.y}) on the curve? {is_on_curve}")
+```
+
+### Point at Infinity
+
+In elliptic curve operations, there is a special point known as the "point at infinity," which serves as the identity element for the group of points on the curve. In the `Point` class, this point is represented by having both `x` and `y` attributes set to `None`:
+
+```python
+# Instantiate the point at infinity
+infinity_point = Point()
+
+# Typically, the point at infinity doesn't lie on the curve
+is_infinity_on_curve = curve.is_point_on_curve(infinity_point)
+print(f"Does the point at infinity lie on the curve? {is_infinity_on_curve}")
+```
+
+### Important Notes
+
+It is critical to confirm that any point you use in elliptic curve operations actually belongs to the curve you're working with. This step is crucial for maintaining cryptographic processes' security and integrity.
+
+The `Point` class, in conjunction with the `EllipticCurve` class, provides you with the tools needed to effectively work on ECC-related tasks, ensuring proper use and management of both points and curves.
