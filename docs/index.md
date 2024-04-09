@@ -48,3 +48,12 @@ By using ECUtils, you agree to the license terms, which allow you to:
 However, please be aware that the software comes "as is," with no warranty of any kind, whether express or implied. Under no circumstances shall the authors or copyright holders be liable for any claim, damages or other liabilities arising from the use of the software.
 
 Before incorporating ECUtils, it's advised to read the full license text, available in the `LICENSE.md` file in the [source code repository](https://github.com/isakruas/ecutils/blob/master/LICENSE.md) or on the official website.
+
+## Cross-Platform Compiled Library
+
+In addition to this Python module, there exists a cross-platform compiled library that offers similar functionalities. This library is available under the [Apache Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) license and can be found on the official website:
+
+[ecutils - software distribution](https://d3llw48k0uhrwl.cloudfront.net/)
+
+If you need an implementation outside of the Python environment or seek integration with other programming languages, this library might be an excellent alternative.
+
