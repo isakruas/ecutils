@@ -91,3 +91,12 @@ For issues, questions, or contributions, please refer to the project's [GitHub r
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 Don't forget to give this project a star if you find it useful! 🌟
+
+## Cross-Platform Compiled Library
+
+In addition to this Python module, there exists a cross-platform compiled library that offers similar functionalities. This library is available under the [Apache Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) license and can be found on the official website:
+
+[ecutils - software distribution](https://d3llw48k0uhrwl.cloudfront.net/)
+
+If you need an implementation outside of the Python environment or seek integration with other programming languages, this library might be an excellent alternative.
+
