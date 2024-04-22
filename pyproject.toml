@@ -6,17 +6,24 @@ build-backend = "hatchling.build"
 name = "ecutils"
 description = "Elliptic Curve Utils"
 readme = {file = "README.md", content-type = "text/markdown"}
-license = {text = "MIT License"}
+license = {text = "MIT"}
 keywords = ["ecutils", "ec", "ecdh", "eck", "ecdsa", "ecmo"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
+  "Development Status :: 6 - Mature",
+  "Environment :: Console",
   "Intended Audience :: Developers",
-  "Topic :: Software Development :: Build Tools",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Build Tools",
+  "Natural Language :: English",
 ]
 authors = [
   {name = "Isak Paulo de Andrade Ruas", email = "isakruas@gmail.com"},
