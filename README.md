@@ -4,6 +4,7 @@
 [![Downloads](https://static.pepy.tech/badge/ecutils)](https://pepy.tech/project/ecutils)
 [![Downloads](https://static.pepy.tech/badge/ecutils/month)](https://pepy.tech/project/ecutils)
 [![Downloads](https://static.pepy.tech/badge/ecutils/week)](https://pepy.tech/project/ecutils)
+[![codecov](https://codecov.io/gh/isakruas/ecutils/branch/master/graph/badge.svg)](https://codecov.io/gh/isakruas/ecutils)
 
 Elliptic Curve Utils, or `ecutils`, is a Python package that provides utilities for working with elliptic curves, particularly in the context of cryptography. It includes functionality for operations like point addition and scalar multiplication on curves, as well as higher-level protocols like key exchange and digital signatures.
 
