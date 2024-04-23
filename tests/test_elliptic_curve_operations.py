@@ -96,14 +96,16 @@ class TestEllipticCurveOperations(unittest.TestCase):
 
     def test_invalid_scalar_multiplication(self):
         """Test scalar multiplication with invalid scalar or point."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError, msg="Test multiplying by scalar 0"):
             self.curve.multiply_point(0, self.point1)  # Test multiplying by scalar 0
-        with self.assertRaises(ValueError):
+        with self.assertRaises(
+            ValueError, msg="Test multiplying by scalar n (or larger)"
+        ):
             self.curve.multiply_point(
                 self.curve.n, self.point1
             )  # Test multiplying by scalar n (or larger)
         off_curve_point = Point(x=200, y=119)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError, msg="Test with point not on the curve"):
             self.curve.multiply_point(
                 2, off_curve_point
             )  # Test with point not on the curve
