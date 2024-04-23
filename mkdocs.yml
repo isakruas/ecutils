@@ -1,6 +1,6 @@
 # Project information
 site_name: ECUtils
-site_url: https://ecutils.readthedocs.io/en/latest/
+site_url: https://ecutils.readthedocs.io/en/stable/
 site_author: Isak Ruas
 site_description: >-
   A comprehensive Python library for elliptic curve operations, providing utilities
