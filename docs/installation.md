@@ -65,7 +65,7 @@ from ecutils.algorithms import DigitalSignature
 # The rest of your code goes here
 ```
 
-Need more guidance? Check out our [documentation](https://ecutils.readthedocs.io/en/latest/).
+Need more guidance? Check out our [documentation](https://ecutils.readthedocs.io/en/stable/).
 
 Keep in mind to stay updated; run this every now and then:
 
