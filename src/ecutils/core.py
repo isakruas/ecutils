@@ -84,6 +84,14 @@ class EllipticCurveOperations:
     @lru_cache(maxsize=1024, typed=True)
     def double_point(self, p: Point) -> Point:
         """Double a point on an elliptic curve."""
+        if p.x is None or p.y is None:
+            return p
+
+        if not self.is_point_on_curve(p):
+            raise ValueError(
+                "Invalid input: One or both of the input points are not on the elliptic curve."
+            )
+
         n = (3 * p.x**2 + self.a) % self.p
         d = (2 * p.y) % self.p
         try:
@@ -137,7 +145,7 @@ class EllipticCurveOperations:
             if r.x is None and r.y is None:
                 r = p
 
-            r = self.add_points(r, r)
+            r = self.double_point(r)
 
             if (k >> i) & 1:
                 if r.x is None and r.y is None:
@@ -256,6 +264,10 @@ class EllipticCurveOperations:
 
         if p.x is None or p.y is None:
             return False
+
+        if isinstance(p, JacobianPoint):
+            p = self.to_affine(p)
+
         # The equation of the curve is y^2 = x^3 + ax + b. We check if the point satisfies this equation.
         left_side = p.y**2 % self.p
         right_side = (p.x**3 + self.a * p.x + self.b) % self.p
