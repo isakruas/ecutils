@@ -1,12 +1,13 @@
 from dataclasses import dataclass
+from functools import lru_cache
 from random import randint
-from typing import Optional, Tuple
+from typing import Tuple
 
 from ecutils.core import EllipticCurve, Point
 from ecutils.curves import get as get_curve
 
 
-@dataclass
+@dataclass(frozen=True)
 class Koblitz:
     """A class implementing the Koblitz method for encoding and decoding messages using elliptic curves.
 
@@ -19,38 +20,41 @@ class Koblitz:
 
     curve_name: str = "secp521r1"
 
-    def __post_init__(self) -> None:
-        """Initializes the internal curve representation once the class instance is created."""
-        self._curve = None
-
     @property
+    @lru_cache(maxsize=1024, typed=True)
     def curve(self) -> EllipticCurve:
-        """Lazy-loads and returns the elliptic curve used for encoding and decoding.
+        """Retrieves the elliptic curve associated with this `Koblitz` instance.
 
-        The elliptic curve object is initialized based on the curve name when this property is accessed
-        for the first time.
+        The elliptic curve object is initialized based on the `curve_name` attribute when this property is accessed
+        for the first time. Caching ensures efficient reuse across multiple operations.
 
         Returns:
-            EllipticCurve: An instance of `EllipticCurve` associated with the specified `curve_name`.
+            EllipticCurve: An instance of `EllipticCurve` representing the curve used for encoding and decoding messages.
         """
+        return get_curve(self.curve_name)
 
-        if self._curve is None:
-            self._curve = get_curve(self.curve_name)
-        return self._curve
-
+    @lru_cache(maxsize=1024, typed=True)
     def encode(self, message: str, alphabet_size: int = 2**8) -> Tuple[Point, int]:
-        """Encodes a textual message to a curve point using the Koblitz method.
+        """Encodes a textual message to a point on the elliptic curve using the Koblitz method.
+
+        This method efficiently converts a textual message (represented as a string) into a point
+        on the elliptic curve associated with this `Koblitz` instance. The Koblitz method leverages
+        the specified `alphabet_size` to map characters in the message to integers within a valid
+        range.
 
         Args:
-            message (str): The message to be encoded. Each character should be representable
-                within the specified `alphabet_size`.
-            alphabet_size (int): The size of the alphabet/character set to consider for encoding.
-                Common values are 2**8 for ASCII and 2**16 for Unicode, which correspond to
-                the number of values a single character can take.
+            message (str): The textual message to be encoded. Each character in the message should
+                be representable within the provided `alphabet_size`. Common choices for `alphabet_size`
+                include 2**8 for ASCII encoding and 2**16 for Unicode encoding, depending on the character
+                set used in the message.
+            alphabet_size (int, optional): The size of the alphabet/character set used in the message.
+                Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
 
         Returns:
-            Tuple[Point, int]: A tuple with the encoded point on the elliptic curve and
-                an auxiliary value j used in the encoding process.
+            Tuple[Point, int]: A tuple containing two elements:
+                - The first element is a `Point` object representing the encoded point on the elliptic curve.
+                - The second element is an integer `j` that serves as an auxiliary value used during the
+                encoding process.
         """
 
         # Convert the string message to a single large integer
@@ -75,16 +79,28 @@ class Koblitz:
         return Point(x, y), j
 
     @staticmethod
+    @lru_cache(maxsize=1024, typed=True)
     def decode(point: Point, j: int, alphabet_size: int = 2**8) -> str:
         """Decodes a point on an elliptic curve to a textual message using the Koblitz method.
 
+        This static method recovers the original textual message from a point on the elliptic curve
+        associated with this `Koblitz` class. The `decode` method leverages the Koblitz method and
+        the provided `j` value, which was obtained during the encoding process, to recover the message.
+        The specified `alphabet_size` is crucial for interpreting the integer values derived from the
+        curve point and mapping them back to characters in the message.
+
         Args:
-            point (Point): The encoded point on the elliptic curve.
-            j (int): The auxiliary value 'j' used during the encoding process.
-            alphabet_size (int): The size of the alphabet/character set considered for decoding.
+            point (Point): The encoded point on the elliptic curve to be decoded.
+            j (int): The auxiliary value 'j' that was generated during the encoding process and is
+                used to assist in the decoding process.
+            alphabet_size (int, optional): The size of the alphabet/character set used in the message.
+                Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
 
         Returns:
-            str: The decoded textual message.
+            str: The decoded textual message that was originally encoded using the Koblitz method.
+
+        Raises:
+            ValueError: If the provided point is not on the elliptic curve associated with this `Koblitz` instance.
         """
 
         # Calculate the original large integer from the point and 'j'
@@ -101,7 +117,7 @@ class Koblitz:
         return "".join(characters)
 
 
-@dataclass
+@dataclass(frozen=True)
 class DigitalSignature:
     """Class to perform digital signature and verification using the ECDSA scheme.
 
@@ -114,35 +130,57 @@ class DigitalSignature:
 
     private_key: int
     curve_name: str = "secp192k1"
-    public_key: Optional[Point] = None
-
-    def __post_init__(self) -> None:
-        """Initializes the DigitalSignature class and sets the public key."""
-
-        self._curve = None
-        if self.public_key is None:
-            self.public_key = self.curve.multiply_point(self.private_key, self.curve.G)
 
     @property
+    @lru_cache(maxsize=1024, typed=True)
     def curve(self) -> EllipticCurve:
-        """Retrieves the elliptic curve based on the curve_name, if not already set."""
+        """Retrieves the elliptic curve associated with this `DigitalSignature` instance.
 
-        if self._curve is None:
-            self._curve = get_curve(self.curve_name)
-        return self._curve
-
-    def generate_signature(self, message_hash: int) -> Tuple[int, int]:
-        """
-        Generates an ECDSA signature for a given private key and message hash.
-
-        Args:
-            message_hash (int): The hash of the message to be signed.
+        The `curve_name` attribute is used to fetch the corresponding elliptic curve object. If the
+        curve object hasn't been retrieved yet, it is fetched from the `get_curve` function and
+        cached for efficient reuse within the instance.
 
         Returns:
-            Tuple[int, int]: The ECDSA signature (r, s).
+            EllipticCurve: The elliptic curve object used for ECDSA operations.
+        """
+        return get_curve(self.curve_name)
 
-        Note:
-            The random number k used in the signature process is chosen unpredictably for each signature.
+    @property
+    @lru_cache(maxsize=1024, typed=True)
+    def public_key(self) -> Point:
+        """Computes and returns the public key corresponding to the private key.
+
+        This property leverages the `curve` property to access the elliptic curve and the
+        `multiply_point` method provided by the underlying elliptic curve library to
+        calculate the public key. The public key is derived by multiplying the generator
+        point (`G`) of the curve with the private key.
+
+        Caching ensures efficient retrieval of the public key across multiple calls within the same instance.
+
+        Returns:
+            Point: The public key point on the elliptic curve associated with this instance.
+        """
+        return self.curve.multiply_point(self.private_key, self.curve.G)
+
+    @lru_cache(maxsize=1024, typed=True)
+    def generate_signature(self, message_hash: int) -> Tuple[int, int]:
+        """Generates an ECDSA signature for a given message hash using the private key.
+
+        This method employs the Elliptic Curve Digital Signature Algorithm (ECDSA) to create a cryptographic
+        signature for the provided `message_hash`. The signature generation process utilizes the private key
+        associated with this `DigitalSignature` instance and a cryptographically secure random number `k` that
+        is chosen for each signature to ensure security.
+
+        Args:
+            message_hash (int): The hash of the message to be signed. The hash function used should
+                match the one used during message verification. Common hash functions include SHA-256 and SHA-384.
+
+        Returns:
+            Tuple[int, int]: The ECDSA signature as a tuple containing two integers (r, s). The signature
+                can be used to verify the authenticity of the message and the signer's identity.
+
+        Raises:
+            ValueError: If the provided `message_hash` is not of type `int`.
         """
 
         (r, s) = (0, 0)
@@ -155,31 +193,35 @@ class DigitalSignature:
             ) % self.curve.n
         return r, s
 
+    @lru_cache(maxsize=1024, typed=True)
     def verify_signature(
         self, public_key: Point, message_hash: int, r: int, s: int
     ) -> bool:
         """
-        Verifies the validity of an ECDSA signature against a public key and message hash.
+        Verifies the authenticity of an ECDSA signature against a public key and message hash.
+
+        This method employs the Elliptic Curve Digital Signature Algorithm (ECDSA) to
+        verify the validity of a signature for a given `message_hash`. The verification process
+        involves the provided `public_key`, which is assumed to correspond to the signer's
+        private key, and the signature components `r` and `s`.
 
         Args:
-            public_key (Point): The public key corresponding to the signer's private key.
-            message_hash (int): The hash of the message that was signed.
-            r (int): The first component of the signature.
-            s (int): The second component of the signature.
+            public_key (Point): The public key associated with the signer.
+            message_hash (bytes): The hash of the message that was supposedly signed. The hash
+                function used should match the one used during message signing. Common hash functions
+                include SHA-256 and SHA-384.
+            r (int): The first component (r) of the ECDSA signature.
+            s (int): The second component (s) of the ECDSA signature.
 
         Returns:
-            bool: True if the signature is valid with respect to the given public key and message hash, False otherwise.
+            bool: True if the signature is valid with respect to the given public key and message hash,
+                False otherwise. A valid signature confirms that the message originated from the
+                entity with the corresponding private key and has not been tampered with.
 
         Raises:
-            ValueError: If r or s are not in the valid range [1, n-1], where n is the order of the curve.
-
-        Examples:
-            >>> ds = DigitalSignature(private_key=123456)
-            >>> public_key = ds.public_key
-            >>> message_hash = hash('message')
-            >>> r, s = ds.generate_signature(message_hash)
-            >>> ds.verify_signature(public_key, message_hash, r, s)
-            True
+            ValueError: If r or s are not within the valid range [1, n-1], where n is the order (number
+                of elements) of the elliptic curve used for signature generation. This ensures the
+                mathematical integrity of the signature verification process.
         """
 
         if not (1 <= r < self.curve.n and 1 <= s < self.curve.n):
