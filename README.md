@@ -79,7 +79,7 @@ bob_shared_secret = bob.compute_shared_secret(alice.public_key)
 # alice_shared_secret should be equal to bob_shared_secret
 ```
 
-### MasseyOmura Key Exchange
+### Massey-Omura Key Exchange
 
 ```python
 from ecutils.protocols import MasseyOmura
