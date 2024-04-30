@@ -1,7 +1,8 @@
+import multiprocessing
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import lru_cache, partial
 from random import randint
-from typing import Tuple
+from typing import Tuple, Union
 
 from ecutils.core import EllipticCurve, Point
 from ecutils.curves import get as get_curve
@@ -34,7 +35,9 @@ class Koblitz:
         return get_curve(self.curve_name)
 
     @lru_cache(maxsize=1024, typed=True)
-    def encode(self, message: str, alphabet_size: int = 2**8) -> Tuple[Point, int]:
+    def encode(
+        self, message: str, alphabet_size: int = 2**8, lengthy=False
+    ) -> Union[Tuple[Tuple[Point, int]], Tuple[Point, int]]:
         """Encodes a textual message to a point on the elliptic curve using the Koblitz method.
 
         This method efficiently converts a textual message (represented as a string) into a point
@@ -48,53 +51,89 @@ class Koblitz:
                 include 2**8 for ASCII encoding and 2**16 for Unicode encoding, depending on the character
                 set used in the message.
             alphabet_size (int, optional): The size of the alphabet/character set used in the message.
-                Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
+                    Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
+            lengthy (bool, optional): A flag indicating whether the message is lengthy or not. If True, the method
+                treats the `message` argument as a large message to be encoded in chunks. Defaults to False.
 
         Returns:
-            Tuple[Point, int]: A tuple containing two elements:
-                - The first element is a `Point` object representing the encoded point on the elliptic curve.
-                - The second element is an integer `j` that serves as an auxiliary value used during the
-                encoding process.
+            Union[Tuple[Point, int], Tuple[Tuple[Point, int]]]:
+                - If `lengthy` is False, a single tuple containing two elements is returned:
+                    - The first element is a `Point` object representing the encoded point on the elliptic curve.
+                    - The second element is an integer `j` that serves as an auxiliary value used during the
+                    encoding process.
+                - If `lengthy` is True, a tuple of tuples is returned. Each inner tuple follows the same format
+                as the single tuple described above.
         """
 
-        # Convert the string message to a single large integer
-        message_decimal = sum(
-            ord(char) * (alphabet_size**i) for i, char in enumerate(message)
+        if alphabet_size == 2**8:
+            size = 64
+        else:
+            size = 32
+
+        # Encode a single message
+        if not lengthy:
+            # Convert the string message to a single large integer
+            message_decimal = sum(
+                ord(char) * (alphabet_size**i) for i, char in enumerate(message[:size])
+            )
+
+            # Search for a valid curve point using the Koblitz method
+            d = 100  # Scaling factor
+            for j in range(1, d - 1):
+                x = (d * message_decimal + j) % self.curve.p
+                s = (x**3 + self.curve.a * x + self.curve.b) % self.curve.p
+
+                # Check if 's' is a quadratic residue modulo 'p', meaning 'y' can be computed
+                if s == pow(s, (self.curve.p + 1) // 2, self.curve.p):
+                    y = pow(s, (self.curve.p + 1) // 4, self.curve.p)
+
+                    # Verify that the computed point is on the curve
+                    if self.curve.is_point_on_curve(Point(x, y)):
+                        break
+
+            return Point(x, y), j
+
+        # Initialize a multiprocessing pool
+        pool = multiprocessing.Pool()
+
+        # Execute the encode function in parallel using the pool
+        encoded_messages = pool.map(
+            partial(self.encode, alphabet_size=alphabet_size, lengthy=False),
+            [message[i : i + size] for i in range(0, len(message), size)],
         )
 
-        # Search for a valid curve point using the Koblitz method
-        d = 100
-        for j in range(1, d - 1):
-            x = (d * message_decimal + j) % self.curve.p
-            s = (x**3 + self.curve.a * x + self.curve.b) % self.curve.p
+        # Close the pool
+        pool.close()
+        pool.join()
 
-            # Check if 's' is a quadratic residue modulo 'p', meaning 'y' can be computed
-            if s == pow(s, (self.curve.p + 1) // 2, self.curve.p):
-                y = pow(s, (self.curve.p + 1) // 4, self.curve.p)
+        return tuple(encoded_messages)
 
-                # Verify that the computed point is on the curve
-                if self.curve.is_point_on_curve(Point(x, y)):
-                    break
-
-        return Point(x, y), j
-
-    @staticmethod
     @lru_cache(maxsize=1024, typed=True)
-    def decode(point: Point, j: int, alphabet_size: int = 2**8) -> str:
+    def decode(
+        self,
+        encoded: Union[Point, tuple[Tuple[Point, int]]],
+        j: int = 0,
+        alphabet_size: int = 2**8,
+        lengthy=False,
+    ) -> str:
         """Decodes a point on an elliptic curve to a textual message using the Koblitz method.
 
-        This static method recovers the original textual message from a point on the elliptic curve
+        This method recovers the original textual message from a point on the elliptic curve
         associated with this `Koblitz` class. The `decode` method leverages the Koblitz method and
         the provided `j` value, which was obtained during the encoding process, to recover the message.
         The specified `alphabet_size` is crucial for interpreting the integer values derived from the
         curve point and mapping them back to characters in the message.
 
         Args:
-            point (Point): The encoded point on the elliptic curve to be decoded.
+            encoded (Point): The encoded point on the elliptic curve to be decoded, or a tuple of tuples
+                representing multiple encoded points if `lengthy` was True during encoding.
             j (int): The auxiliary value 'j' that was generated during the encoding process and is
-                used to assist in the decoding process.
+                used to assist in the decoding process. Defaults to 0.
             alphabet_size (int, optional): The size of the alphabet/character set used in the message.
-                Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
+                    Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
+            lengthy (bool, optional): A flag indicating whether the message was encoded in chunks. If True, the method
+                treats the `encoded` argument as a collection of encoded messages to be decoded individually.
+                Defaults to False.
 
         Returns:
             str: The decoded textual message that was originally encoded using the Koblitz method.
@@ -103,17 +142,46 @@ class Koblitz:
             ValueError: If the provided point is not on the elliptic curve associated with this `Koblitz` instance.
         """
 
-        # Calculate the original large integer from the point and 'j'
-        d = 100
-        message_decimal = (point.x - j) // d
+        # Decode single point
+        if not lengthy and isinstance(encoded, Point):
+            # Calculate the original large integer from the point and 'j'
+            d = 100  # Assuming 'd' is a scaling factor used in encoding
+            message_decimal = (encoded.x - j) // d
 
-        # Decompose the large integer into individual characters based on `alphabet_size`
+            # Decompose the large integer into individual characters based on `alphabet_size`
+            characters = []
+            while message_decimal != 0:
+                characters.append(chr(message_decimal % alphabet_size))
+                message_decimal //= alphabet_size
+
+            # Convert the list of characters into a string and return it
+            return "".join(characters)
+
+        # Decode tuple of (Point, int) pairs
+        is_tuple_of_point_int = lambda instance: isinstance(instance, tuple) and all(
+            isinstance(elem, tuple)
+            and len(elem) == 2
+            and isinstance(elem[0], Point)
+            and isinstance(elem[1], int)
+            for elem in instance
+        )
+
         characters = []
-        while message_decimal != 0:
-            characters.append(chr(message_decimal % alphabet_size))
-            message_decimal //= alphabet_size
+        if is_tuple_of_point_int(encoded):
 
-        # Convert the list of characters into a string and return it
+            # Initialize a multiprocessing pool
+            pool = multiprocessing.Pool()
+
+            # Execute the decode function in parallel using the pool
+            characters = pool.starmap(
+                partial(self.decode, alphabet_size=alphabet_size, lengthy=False),
+                [(i[0], i[1]) for i in encoded],
+            )
+
+            # Close the pool
+            pool.close()
+            pool.join()
+
         return "".join(characters)
 
 
