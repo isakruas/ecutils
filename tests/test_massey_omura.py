@@ -40,3 +40,25 @@ class TestMasseyOmura(unittest.TestCase):
             fully_decrypted_message,
             "Decrypted message should match the original one.",
         )
+
+    def test_point_multiplication(self):
+        """Validate the point multiplication with the private key."""
+        private_key = 123456  # Define a test private key.
+        mo = MasseyOmura(private_key)  # Initialize MasseyOmura instance.
+
+        # Perform point multiplication using private key and generator point.
+        public_key = mo.public_key
+        expected_point = mo.curve.multiply_point(private_key, mo.curve.G)
+
+        # Check if the resulting point is on the curve.
+        self.assertTrue(
+            mo.curve.is_point_on_curve(expected_point),
+            "The calculated public key should lie on the curve.",
+        )
+
+        # Validate that the public_key computed using `multiply_point` matches what we derived directly.
+        self.assertEqual(
+            public_key,
+            expected_point,
+            "The public key calculated does not match the expected point from multiplication.",
+        )

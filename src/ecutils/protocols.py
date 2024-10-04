@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from ecutils.core import EllipticCurve, Point
 from ecutils.curves import get as get_curve
+from ecutils.settings import LRU_CACHE_MAXSIZE
 
 
 @dataclass(frozen=True)
@@ -18,7 +19,7 @@ class DiffieHellman:
     curve_name: str = "secp192k1"
 
     @property
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def curve(self) -> EllipticCurve:
         """Retrieves the elliptic curve associated with this `DiffieHellman` instance.
 
@@ -32,7 +33,7 @@ class DiffieHellman:
         return get_curve(self.curve_name)
 
     @property
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def public_key(self) -> Point:
         """Computes and returns the public key corresponding to the private key.
 
@@ -48,7 +49,7 @@ class DiffieHellman:
         """
         return self.curve.multiply_point(self.private_key, self.curve.G)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def compute_shared_secret(self, other_public_key: Point) -> Point:
         """Computes the shared secret using the private key and the other party's public key.
 
@@ -75,7 +76,7 @@ class MasseyOmura:
     curve_name: str = "secp192k1"
 
     @property
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def curve(self) -> EllipticCurve:
         """Retrieves the elliptic curve associated with this `MasseyOmura` instance.
 
@@ -89,7 +90,7 @@ class MasseyOmura:
         return get_curve(self.curve_name)
 
     @property
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def public_key(self) -> Point:
         """Computes and returns the public key corresponding to the private key.
 
@@ -105,19 +106,19 @@ class MasseyOmura:
         """
         return self.curve.multiply_point(self.private_key, self.curve.G)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def first_encryption_step(self, message: Point) -> Point:
         """Encrypts the message with the sender's private key."""
 
         return self.curve.multiply_point(self.private_key, message)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def second_encryption_step(self, received_encrypted_message: Point) -> Point:
         """Applies the receiver's private key on the received encrypted message."""
 
         return self.first_encryption_step(received_encrypted_message)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def partial_decryption_step(self, encrypted_message: Point) -> Point:
         """Partial decryption using the inverse of the sender's private key."""
 

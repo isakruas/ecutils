@@ -6,6 +6,7 @@ from typing import Tuple, Union
 
 from ecutils.core import EllipticCurve, Point
 from ecutils.curves import get as get_curve
+from ecutils.settings import LRU_CACHE_MAXSIZE
 
 
 @dataclass(frozen=True)
@@ -22,7 +23,7 @@ class Koblitz:
     curve_name: str = "secp521r1"
 
     @property
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def curve(self) -> EllipticCurve:
         """Retrieves the elliptic curve associated with this `Koblitz` instance.
 
@@ -34,7 +35,7 @@ class Koblitz:
         """
         return get_curve(self.curve_name)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def encode(
         self, message: str, alphabet_size: int = 2**8, lengthy=False
     ) -> Union[Tuple[Tuple[Point, int]], Tuple[Point, int]]:
@@ -108,7 +109,7 @@ class Koblitz:
 
         return tuple(encoded_messages)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def decode(
         self,
         encoded: Union[Point, tuple[Tuple[Point, int]]],
@@ -200,7 +201,7 @@ class DigitalSignature:
     curve_name: str = "secp192k1"
 
     @property
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def curve(self) -> EllipticCurve:
         """Retrieves the elliptic curve associated with this `DigitalSignature` instance.
 
@@ -214,7 +215,7 @@ class DigitalSignature:
         return get_curve(self.curve_name)
 
     @property
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def public_key(self) -> Point:
         """Computes and returns the public key corresponding to the private key.
 
@@ -230,7 +231,7 @@ class DigitalSignature:
         """
         return self.curve.multiply_point(self.private_key, self.curve.G)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def generate_signature(self, message_hash: int) -> Tuple[int, int]:
         """Generates an ECDSA signature for a given message hash using the private key.
 
@@ -261,7 +262,7 @@ class DigitalSignature:
             ) % self.curve.n
         return r, s
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def verify_signature(
         self, public_key: Point, message_hash: int, r: int, s: int
     ) -> bool:

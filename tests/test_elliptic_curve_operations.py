@@ -9,7 +9,10 @@ class TestEllipticCurveOperations(unittest.TestCase):
 
     def setUp(self):
         """Set up an elliptic curve environment for testing."""
+
         self.curve = secp192k1
+        self.curve.__class__.use_projective_coordinates = True
+
         self.point1 = Point(
             x=0xF091CF6331B1747684F5D2549CD1D4B3A8BED93B94F93CB6,
             y=0xFD7AF42E1E7565A02E6268661C5E42E603DA2D98A18F2ED5,
@@ -25,6 +28,16 @@ class TestEllipticCurveOperations(unittest.TestCase):
             x=0x3CD61E370D02CA0687C0B5F7EBF6D0373F4DD0CCCCB7CC2D,
             y=0x2C4BEFD9B02F301EB4014504F0533AA7EB19E9EA56441F78,
         )
+
+        self.curve.__class__.use_projective_coordinates = False
+
+        calculated_sum = self.curve.add_points(self.point1, self.point2)
+        self.assertEqual(
+            calculated_sum, expected_sum, "Point addition result is incorrect."
+        )
+
+        self.curve.__class__.use_projective_coordinates = True
+
         calculated_sum = self.curve.add_points(self.point1, self.point2)
         self.assertEqual(
             calculated_sum, expected_sum, "Point addition result is incorrect."
@@ -36,10 +49,33 @@ class TestEllipticCurveOperations(unittest.TestCase):
             x=0xEA525DD5A1353762A14E9E78B9063316D1F2D5E792F87862,
             y=0xA936D583530982690C445427CDF2C5B0BB1C88749247B02E,
         )
+
+        self.curve.__class__.use_projective_coordinates = False
+
         calculated_double = self.curve.add_points(self.point1, self.point1)
         self.assertEqual(
             calculated_double, expected_double, "Point doubling result is incorrect."
         )
+
+        self.curve.__class__.use_projective_coordinates = True
+
+        calculated_double = self.curve.add_points(self.point1, self.point1)
+        self.assertEqual(
+            calculated_double, expected_double, "Point doubling result is incorrect."
+        )
+
+        calculated_double = self.curve.jacobian_double_point(Point())
+        self.assertEqual(
+            self.curve.to_affine(calculated_double),
+            Point(),
+            "Point doubling result is incorrect.",
+        )
+
+    def test_invalid_point_doubling(self):
+        """Test doubling invalid points not on the curve."""
+        off_curve_point = Point(x=200, y=119)
+        with self.assertRaises(ValueError):
+            self.curve.double_point(off_curve_point)
 
     def test_scalar_multiplication(self):
         """Test the scalar multiplication of a point on the curve."""
@@ -48,6 +84,30 @@ class TestEllipticCurveOperations(unittest.TestCase):
             x=0xEA525DD5A1353762A14E9E78B9063316D1F2D5E792F87862,
             y=0xA936D583530982690C445427CDF2C5B0BB1C88749247B02E,
         )
+
+        self.curve.__class__.use_projective_coordinates = False
+
+        calculated_product = self.curve.multiply_point(scalar, self.point1)
+        self.assertEqual(
+            calculated_product,
+            expected_product,
+            "Scalar multiplication result is incorrect.",
+        )
+
+        calculated_product = self.curve.multiply_point(
+            0xEA525DD5A1353762A14E9E78B9063316D1F2D5E792F87862, self.point1
+        )
+        self.assertEqual(
+            calculated_product,
+            Point(
+                x=5095008632516147798595855149669871701227161828659032863660,
+                y=4326825067835634121700785249151086742283636342358962787033,
+            ),
+            "Scalar multiplication result is incorrect.",
+        )
+
+        self.curve.__class__.use_projective_coordinates = True
+
         calculated_product = self.curve.multiply_point(scalar, self.point1)
         self.assertEqual(
             calculated_product,
@@ -59,6 +119,10 @@ class TestEllipticCurveOperations(unittest.TestCase):
         """Test if the given point is on the curve."""
         self.assertTrue(
             self.curve.is_point_on_curve(self.point1),
+            "The point should be on the curve.",
+        )
+        self.assertTrue(
+            self.curve.is_point_on_curve(self.curve.to_jacobian(self.point1)),
             "The point should be on the curve.",
         )
         off_curve_point = Point(x=200, y=119)
@@ -94,6 +158,15 @@ class TestEllipticCurveOperations(unittest.TestCase):
             "Adding the identity element should return the original point.",
         )
 
+        calculated_sum = self.curve.jacobian_add_points(
+            self.curve.to_jacobian(self.point1), identity
+        )
+        self.assertEqual(
+            self.curve.to_affine(calculated_sum),
+            self.point1,
+            "Point doubling result is incorrect.",
+        )
+
     def test_invalid_scalar_multiplication(self):
         """Test scalar multiplication with invalid scalar or point."""
         with self.assertRaises(ValueError, msg="Test multiplying by scalar 0"):
@@ -113,6 +186,25 @@ class TestEllipticCurveOperations(unittest.TestCase):
     def test_addition_of_inverses_leading_to_infinity(self):
         """Test adding a point on the curve to its inverse, which should lead to
         the point at infinity."""
+
+        self.curve.__class__.use_projective_coordinates = False
+
+        inverse_point = Point(
+            x=self.point1.x,
+            y=(-self.point1.y) % self.curve.p,  # Calculating the modular inverse for y
+        )
+        identity_element = Point()  # Point at infinity representation with None values
+
+        # Adding a point to its negation will result in the point at infinity
+        calculated_sum = self.curve.add_points(self.point1, inverse_point)
+        self.assertEqual(
+            calculated_sum,
+            identity_element,
+            "Adding a point to its negation should give the point at infinity.",
+        )
+
+        self.curve.__class__.use_projective_coordinates = True
+
         inverse_point = Point(
             x=self.point1.x,
             y=(-self.point1.y) % self.curve.p,  # Calculating the modular inverse for y
@@ -142,6 +234,7 @@ class TestEllipticCurveOperations(unittest.TestCase):
             n=4,  # The order of the base point G.
             h=0,  # The cofactor (not relevant in this test case).
         )
+        curve.__class__.use_projective_coordinates = True
 
         # Create a point with a y-coordinate of zero (located at the curve's x-axis).
         point_with_y_zero = Point(x=0, y=0)
@@ -178,6 +271,35 @@ class TestEllipticCurveOperations(unittest.TestCase):
             n=4,  # The order of the base point G.
             h=0,  # The cofactor.
         )
+        curve.__class__.use_projective_coordinates = True
+
+        # The point at infinity, represented as a point with no coordinates.
+        point_at_infinity = Point()
+
+        # The expected result of multiplying the point at infinity by any scalar.
+        expected_result_at_infinity = Point()
+
+        # Multiply the point at infinity by a scalar (here, scalar = 3).
+        result = curve.multiply_point(3, point_at_infinity)
+
+        # Assert that the multiplication result is the point at infinity.
+        # This confirms the mathematical property of the point at infinity on elliptic curves.
+        self.assertEqual(
+            result,
+            expected_result_at_infinity,
+            "Multiplying the point at infinity by any scalar should remain the point at infinity.",
+        )
+
+        # Reinitialize the elliptic curve with the same parameters as before.
+        curve = EllipticCurve(
+            p=13,  # The prime number defining the finite field.
+            a=1,  # The 'a' coefficient of the elliptic curve equation.
+            b=0,  # The 'b' coefficient of the elliptic curve equation.
+            G=Point(x=2, y=1),  # The generator point for the curve group.
+            n=4,  # The order of the base point G.
+            h=0,  # The cofactor.
+        )
+        curve.__class__.use_projective_coordinates = False
 
         # The point at infinity, represented as a point with no coordinates.
         point_at_infinity = Point()
