@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 from ecutils.core import EllipticCurve, Point
+from ecutils.settings import LRU_CACHE_MAXSIZE
 
 secp192k1 = EllipticCurve(
     p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFEE37,
@@ -101,7 +102,7 @@ secp521r1 = EllipticCurve(
 )
 
 
-@lru_cache(maxsize=1024, typed=True)
+@lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
 def get(name) -> EllipticCurve:
     """Retrieve an EllipticCurve instance by its standard name.
 

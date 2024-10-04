@@ -45,6 +45,7 @@ It's essential that your contributions are well-tested:
 
    ```bash
    pytest --cov=ecutils tests/
+   pytest --cov=ecutils --cov-report=html tests/
    ```
 
 Ensure that your contributions pass all tests and that the overall test coverage isn’t compromised.

@@ -1,8 +1,10 @@
 import hashlib
 from functools import lru_cache
 
+from ecutils.settings import LRU_CACHE_MAXSIZE
 
-@lru_cache(maxsize=1024, typed=True)
+
+@lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
 def calculate_file_hash(file_name: str, block_size: int = 16384) -> int:
     """Calculates the SHA-256 hash of a file efficiently.
 

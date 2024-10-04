@@ -21,7 +21,12 @@ jobs:
           pip install -r requirements-tests.txt
           pip install pytest pytest-cov
 
+      - name: Export environment variable
+        run: echo "LRU_CACHE_MAXSIZE=0" >> $GITHUB_ENV
+
       - name: Run tests with coverage
+        env:
+          LRU_CACHE_MAXSIZE: ${{ env.LRU_CACHE_MAXSIZE }}
         run: pytest --cov tests
 
       - name: Upload coverage reports to Codecov

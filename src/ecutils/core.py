@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Optional
 
+from ecutils.settings import LRU_CACHE_MAXSIZE
+
 
 @dataclass(frozen=True)
 class Point:
@@ -36,7 +38,7 @@ class EllipticCurveOperations:
 
     use_projective_coordinates: bool = True
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def add_points(self, p1: Point, p2: Point) -> Point:
         """Add two points on an elliptic curve.
 
@@ -81,7 +83,7 @@ class EllipticCurveOperations:
         y_3 = (s * (p1.x - x_3) - p1.y) % self.p
         return Point(x_3, y_3)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def double_point(self, p: Point) -> Point:
         """Double a point on an elliptic curve."""
         if p.x is None or p.y is None:
@@ -94,16 +96,17 @@ class EllipticCurveOperations:
 
         n = (3 * p.x**2 + self.a) % self.p
         d = (2 * p.y) % self.p
-        try:
-            inv = pow(d, -1, self.p)
-        except ValueError:
-            return Point()  # Point at infinity
+        # try:
+        #     inv = pow(d, -1, self.p)
+        # except ValueError:
+        #     return Point()  # Point at infinity
+        inv = pow(d, -1, self.p)
         s = (n * inv) % self.p
         x_3 = (s**2 - p.x - p.x) % self.p
         y_3 = (s * (p.x - x_3) - p.y) % self.p
         return Point(x_3, y_3)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def multiply_point(self, k: int, p: Point) -> Point:
         """Multiply a point on an elliptic curve by an integer scalar.
 
@@ -154,7 +157,7 @@ class EllipticCurveOperations:
                     r = self.add_points(r, p)
         return r
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def jacobian_add_points(
         self, p1: JacobianPoint, p2: JacobianPoint
     ) -> JacobianPoint:
@@ -187,7 +190,7 @@ class EllipticCurveOperations:
 
         return JacobianPoint(x, y, z)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def jacobian_double_point(self, p: JacobianPoint) -> JacobianPoint:
         """Double a point on an elliptic curve using Jacobian coordinates."""
         if p.x is None or p.y is None:
@@ -206,7 +209,7 @@ class EllipticCurveOperations:
 
         return JacobianPoint(nx, ny, nz)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def jacobian_multiply_point(self, k: int, p: JacobianPoint) -> JacobianPoint:
         """Multiply a point on an elliptic curve by an integer scalar using repeated addition."""
         if k == 0 or p.x is None or p.y is None:
@@ -222,7 +225,7 @@ class EllipticCurveOperations:
         return result
 
     @staticmethod
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def to_jacobian(point: Point) -> JacobianPoint:
         """Converts a point from affine coordinates to Jacobian coordinates.
 
@@ -236,7 +239,7 @@ class EllipticCurveOperations:
             return JacobianPoint()
         return JacobianPoint(point.x, point.y, 1)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def to_affine(self, point: JacobianPoint) -> Point:
         """Converts a point from Jacobian coordinates to affine coordinates.
 
@@ -251,7 +254,7 @@ class EllipticCurveOperations:
         inv_z = pow(point.z, -1, self.p)
         return Point((point.x * inv_z**2) % self.p, (point.y * inv_z**3) % self.p)
 
-    @lru_cache(maxsize=1024, typed=True)
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def is_point_on_curve(self, p: Point) -> bool:
         """Check if a point lies on the elliptic curve.
 
