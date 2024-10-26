@@ -4,10 +4,29 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ecutils"
-description = "Elliptic Curve Utils"
+description = "Python Library for Elliptic Curve Cryptography: key exchanges (Diffie-Hellman, Massey-Omura), ECDSA signatures, and Koblitz encoding. Suitable for crypto education and secure systems."
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {text = "MIT"}
-keywords = ["ecutils", "ec", "ecdh", "eck", "ecdsa", "ecmo"]
+keywords = [
+  "ecutils",
+  "ec",
+  "ecdh",
+  "eck",
+  "ecdsa",
+  "ecmo",
+  "secure-communication",
+  "public-key-cryptography",
+  "cryptographic-algorithms",
+  "digital-signatures",
+  "python-cryptography",
+  "elliptic-curve-cryptography",
+  "diffie-hellman-key-exchange",
+  "ecc-based-protocols",
+  "message-encoding-and-decoding",
+  "koblitz-encoding",
+  "massey-omura-protocol",
+  "elliptic-curve-operation"
+]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Development Status :: 6 - Mature",
