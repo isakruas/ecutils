@@ -49,11 +49,12 @@ However, please be aware that the software comes "as is," with no warranty of an
 
 Before incorporating ECUtils, it's advised to read the full license text, available in the `LICENSE.md` file in the [source code repository](https://github.com/isakruas/ecutils/blob/master/LICENSE.md) or on the official website.
 
-## Cross-Platform Compiled Library
+## Language-Specific Libraries for Elliptic Curve Cryptography
 
-In addition to this Python module, there exists a cross-platform compiled library that offers similar functionalities. This library is available under the [Apache Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) license and can be found on the official website:
+In addition to the Python module, there are other language-specific libraries available for elliptic curve cryptography:
 
-[ecutils - software distribution](https://d3llw48k0uhrwl.cloudfront.net/)
+- **JavaScript Library for Elliptic Curve Cryptography**: The `js-ecutils` package provides elliptic curve functionalities tailored for JavaScript developers. You can find it on [GitHub](https://github.com/isakruas/js-ecutils).
 
-If you need an implementation outside of the Python environment or seek integration with other programming languages, this library might be an excellent alternative.
+- **Go Library for Elliptic Curve Cryptography**: The `go-ecutils` library offers similar elliptic curve utilities for Go developers. More information and documentation can be found on [GitHub](https://github.com/isakruas/go-ecutils).
 
+These libraries enable developers to utilize elliptic curve cryptography in their preferred programming environments, ensuring flexibility and ease of integration.
