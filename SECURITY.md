@@ -6,6 +6,7 @@ Use this section to tell people about which versions of your project are current
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.1.3   | :white_check_mark: |
 | 1.1.2   | :white_check_mark: |
 | 1.1.1   | :white_check_mark: |
 | 1.1.0   | :white_check_mark: |
@@ -17,7 +18,6 @@ Use this section to tell people about which versions of your project are current
 | 0.0.1.dev2   | :x:                |
 | 0.0.1.dev1   | :x:                |
 | 0.0.1.dev0   | :x:                |
- 
 
 ## Reporting a Vulnerability
 
