@@ -1,5 +1,7 @@
 import unittest
+from unittest.mock import patch
 
+from ecutils import settings
 from ecutils.algorithms import Koblitz
 
 
@@ -8,6 +10,7 @@ class TestKoblitz(unittest.TestCase):
 
     def setUp(self):
         """Set up test cases environment."""
+        settings.LRU_CACHE_MAXSIZE = 0
         self.encoder = Koblitz(curve_name="secp192k1")
         self.decoder = Koblitz(curve_name="secp192k1")
 
@@ -34,14 +37,33 @@ class TestKoblitz(unittest.TestCase):
         self.encoder = Koblitz(curve_name="secp521r1")
         self.decoder = Koblitz(curve_name="secp521r1")
         lengthy_message = "Hello, Elliptic Curve Cryptography! " * 10
-        encoded_messages = self.encoder.encode(
-            lengthy_message, alphabet_size=2**8, lengthy=True
+        encoded_data = self.encoder.encode(
+            lengthy_message, alphabet_size=2**8, chunked=True
         )
         decoded_message = self.decoder.decode(
-            encoded_messages, alphabet_size=2**8, lengthy=True
+            encoded_data, alphabet_size=2**8, chunked=True
         )
         self.assertEqual(
             lengthy_message,
             decoded_message,
             "Decoded message should match the original lengthy message.",
         )
+
+    def test_decode_invalid_input(self):
+        """Test decoding with invalid input data."""
+        with self.assertRaises(ValueError):
+            self.decoder.decode("not a point", chunked=False)
+
+    def test_decode_invalid_chunked_input(self):
+        """Test decoding with invalid chunked input."""
+        with self.assertRaises(ValueError):
+            self.decoder.decode("not a tuple", chunked=True)
+
+    @patch("ecutils.core.EllipticCurve.is_point_on_curve", return_value=False)
+    def test_koblitz_encode_fail(self, mock_is_point_on_curve):
+        """
+        Test that Koblitz.encode raises a ValueError if it fails to find a point.
+        """
+        koblitz = Koblitz(curve_name="secp192k1")
+        with self.assertRaises(ValueError):
+            koblitz.encode("a")

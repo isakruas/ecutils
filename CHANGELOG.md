@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.5] - 2025-01-21
+
+### Added
+- Benchmarks documentation page with performance data for all curves and configurations
+- Security considerations documentation page
+- Configuration documentation page for LRU cache and coordinate systems
+- Benchmark scripts for performance testing
+- Ruff configuration for linting and formatting
+
+### Changed
+- Reorganized documentation structure using mkdocstrings for API reference
+- Consolidated CI workflows into single ci.yml
+- Updated README with performance data and supported curves table
+- Improved test coverage to 100%
+
+### Removed
+- Deprecated separate documentation files (moved to reference/ structure)
+- Old workflow files (codecov.yml, pypi.yml)
+
 ## [v1.1.4] - 2024-10-26
 
 ### Changed

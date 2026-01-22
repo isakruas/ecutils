@@ -1,5 +1,6 @@
 import unittest
 
+from ecutils import settings
 from ecutils.algorithms import DigitalSignature
 
 
@@ -8,6 +9,7 @@ class TestDigitalSignature(unittest.TestCase):
 
     def setUp(self):
         """Set up digital signature environment."""
+        settings.LRU_CACHE_MAXSIZE = 0
         self.private_key = 123456789
         self.ds = DigitalSignature(self.private_key)
 

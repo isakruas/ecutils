@@ -48,20 +48,27 @@ plugins:
   - search
   - minify:
       minify_html: true
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_root_heading: yes
+            show_source: yes
 
 # Page tree
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Usage: usage.md
-  - Core:
-      - Point: core/point.md
-      - Elliptic Curve: core/elliptic_curve.md
-  - Algorithms:
-      - Koblitz: algorithms/koblitz.md
-      - Digital Signature: algorithms/digital_signature.md
-  - Protocols:
-      - Diffie-Hellman: protocols/diffie_hellman.md
-      - Massey-Omura: protocols/massey_omura.md
-  - Reference:
-      - Curves: reference/curves.md
+  - Getting Started:
+    - Installation: installation.md
+    - Usage: usage.md
+    - Configuration: configuration.md
+  - API Reference:
+    - Core: reference/core.md
+    - Algorithms: reference/algorithms.md
+    - Protocols: reference/protocols.md
+    - Curves: reference/curves.md
+    - Utils: reference/utils.md
+  - Advanced:
+    - Benchmarks: benchmarks.md
+    - Security: security.md

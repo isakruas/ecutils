@@ -1,0 +1,14 @@
+# ruff.toml
+line-length = 88
+
+[lint]
+# Same as Black.
+select = ["E", "W", "F", "I", "UP"]
+
+# Ignore E501 (line too long) for now, as there are many long docstrings and comments.
+# This can be addressed in the future by manually reformatting them.
+ignore = ["E501"]
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"

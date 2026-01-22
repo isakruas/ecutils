@@ -11,8 +11,14 @@ class TestGetCurve(unittest.TestCase):
         curve_name = "secp256k1"
         expected_curve = secp256k1
         curve = get(curve_name)
+        self.assertEqual(curve.p, expected_curve.p)
+        self.assertEqual(curve.a, expected_curve.a)
+        self.assertEqual(curve.b, expected_curve.b)
+        self.assertEqual(curve.G, expected_curve.G)
+        self.assertEqual(curve.n, expected_curve.n)
+        self.assertEqual(curve.h, expected_curve.h)
         self.assertEqual(
-            curve, expected_curve, f"Should retrieve the curve {curve_name}."
+            curve.use_projective_coordinates, expected_curve.use_projective_coordinates
         )
 
     def test_get_invalid_curve(self):

@@ -1,7 +1,7 @@
 import multiprocessing
+import secrets
 from dataclasses import dataclass
 from functools import lru_cache, partial
-from random import randint
 from typing import Tuple, Union
 
 from ecutils.core import EllipticCurve, Point
@@ -37,7 +37,7 @@ class Koblitz:
 
     @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def encode(
-        self, message: str, alphabet_size: int = 2**8, lengthy=False
+        self, message: str, alphabet_size: int = 2**8, chunked: bool = False
     ) -> Union[Tuple[Tuple[Point, int]], Tuple[Point, int]]:
         """Encodes a textual message to a point on the elliptic curve using the Koblitz method.
 
@@ -53,53 +53,80 @@ class Koblitz:
                 set used in the message.
             alphabet_size (int, optional): The size of the alphabet/character set used in the message.
                     Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
-            lengthy (bool, optional): A flag indicating whether the message is lengthy or not. If True, the method
+            chunked (bool, optional): A flag indicating whether the message is lengthy or not. If True, the method
                 treats the `message` argument as a large message to be encoded in chunks. Defaults to False.
 
         Returns:
             Union[Tuple[Point, int], Tuple[Tuple[Point, int]]]:
-                - If `lengthy` is False, a single tuple containing two elements is returned:
+                - If `chunked` is False, a single tuple containing two elements is returned:
                     - The first element is a `Point` object representing the encoded point on the elliptic curve.
                     - The second element is an integer `j` that serves as an auxiliary value used during the
                     encoding process.
-                - If `lengthy` is True, a tuple of tuples is returned. Each inner tuple follows the same format
+                - If `chunked` is True, a tuple of tuples is returned. Each inner tuple follows the same format
                 as the single tuple described above.
         """
 
+        # Determine the chunk size for the message based on the alphabet size.
+        # These values are chosen to balance encoding efficiency and the size of the resulting integer.
         if alphabet_size == 2**8:
-            size = 64
+            size = 64  # Chunk size for ASCII-like alphabets
         else:
-            size = 32
+            size = 32  # Chunk size for larger alphabets (e.g., Unicode)
 
         # Encode a single message
-        if not lengthy:
-            # Convert the string message to a single large integer
+        if not chunked:
+            # 1. Convert the string message to a single large integer.
+            # The message is treated as a base-`alphabet_size` number, and each character
+            # is a digit. This creates a unique integer representation of the message.
             message_decimal = sum(
                 ord(char) * (alphabet_size**i) for i, char in enumerate(message[:size])
             )
 
-            # Search for a valid curve point using the Koblitz method
-            d = 100  # Scaling factor
+            # 2. Koblitz's method for encoding a message to a point.
+            # We are looking for a point (x, y) on the curve such that x is derived from the message.
+            # Since not all x-coordinates correspond to a valid point on the curve,
+            # we introduce a small integer `j` and a scaling factor `d`.
+            # We try different values of `j` until we find a valid point.
+            # The equation is x = d * m + j, where m is the message integer.
+            d = 100  # Scaling factor to reduce the probability of failure.
             for j in range(1, d - 1):
                 x = (d * message_decimal + j) % self.curve.p
+
+                # 3. Check if this x-coordinate corresponds to a valid point.
+                # We use the curve equation y^2 = x^3 + ax + b.
+                # Let s = x^3 + ax + b. We need to check if `s` has a square root modulo `p`.
+                # This is equivalent to checking if `s` is a quadratic residue modulo `p`.
                 s = (x**3 + self.curve.a * x + self.curve.b) % self.curve.p
 
-                # Check if 's' is a quadratic residue modulo 'p', meaning 'y' can be computed
+                # Euler's criterion states that `s` is a quadratic residue modulo `p`
+                # if s^((p-1)/2) = 1 (mod p). For p = 3 (mod 4), which is common for ECC,
+                # we can use the fact that if `s` is a quadratic residue, then s = s^((p+1)/2) (mod p)
+                # and the square root is y = s^((p+1)/4) (mod p).
                 if s == pow(s, (self.curve.p + 1) // 2, self.curve.p):
                     y = pow(s, (self.curve.p + 1) // 4, self.curve.p)
 
-                    # Verify that the computed point is on the curve
+                    # 4. Verify that the computed point is on the curve.
+                    # This is a final check to ensure that the point is valid.
                     if self.curve.is_point_on_curve(Point(x, y)):
+                        # We have found a valid point. Break the loop.
                         break
+            else:
+                # If the loop completes without finding a point, we raise an error.
+                raise ValueError(
+                    "Failed to encode message to a valid point on the curve."
+                )
 
+            # Return the encoded point and the value of `j` used to find it.
+            # `j` is needed for decoding.
             return Point(x, y), j
 
+        # If chunked is True, we split the message into chunks and encode each chunk in parallel.
         # Initialize a multiprocessing pool
         pool = multiprocessing.Pool()
 
         # Execute the encode function in parallel using the pool
         encoded_messages = pool.map(
-            partial(self.encode, alphabet_size=alphabet_size, lengthy=False),
+            partial(self.encode, alphabet_size=alphabet_size, chunked=False),
             [message[i : i + size] for i in range(0, len(message), size)],
         )
 
@@ -112,10 +139,10 @@ class Koblitz:
     @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def decode(
         self,
-        encoded: Union[Point, tuple[Tuple[Point, int]]],
+        encoded_data: Union[Point, tuple[Tuple[Point, int]]],
         j: int = 0,
         alphabet_size: int = 2**8,
-        lengthy=False,
+        chunked: bool = False,
     ) -> str:
         """Decodes a point on an elliptic curve to a textual message using the Koblitz method.
 
@@ -126,14 +153,14 @@ class Koblitz:
         curve point and mapping them back to characters in the message.
 
         Args:
-            encoded (Point): The encoded point on the elliptic curve to be decoded, or a tuple of tuples
-                representing multiple encoded points if `lengthy` was True during encoding.
+            encoded_data (Point): The encoded point on the elliptic curve to be decoded, or a tuple of tuples
+                representing multiple encoded points if `chunked` was True during encoding.
             j (int): The auxiliary value 'j' that was generated during the encoding process and is
                 used to assist in the decoding process. Defaults to 0.
             alphabet_size (int, optional): The size of the alphabet/character set used in the message.
                     Defaults to 2**8 (256) for ASCII encoding. Higher values accommodate larger character sets.
-            lengthy (bool, optional): A flag indicating whether the message was encoded in chunks. If True, the method
-                treats the `encoded` argument as a collection of encoded messages to be decoded individually.
+            chunked (bool, optional): A flag indicating whether the message was encoded in chunks. If True, the method
+                treats the `encoded_data` argument as a collection of encoded messages to be decoded individually.
                 Defaults to False.
 
         Returns:
@@ -144,10 +171,14 @@ class Koblitz:
         """
 
         # Decode single point
-        if not lengthy and isinstance(encoded, Point):
+        if not chunked:
+            if not isinstance(encoded_data, Point):
+                raise ValueError(
+                    "Invalid input: `encoded_data` must be a Point when `chunked` is False."
+                )
             # Calculate the original large integer from the point and 'j'
             d = 100  # Assuming 'd' is a scaling factor used in encoding
-            message_decimal = (encoded.x - j) // d
+            message_decimal = (encoded_data.x - j) // d
 
             # Decompose the large integer into individual characters based on `alphabet_size`
             characters = []
@@ -158,30 +189,33 @@ class Koblitz:
             # Convert the list of characters into a string and return it
             return "".join(characters)
 
-        # Decode tuple of (Point, int) pairs
-        is_tuple_of_point_int = lambda instance: isinstance(instance, tuple) and all(
-            isinstance(elem, tuple)
-            and len(elem) == 2
-            and isinstance(elem[0], Point)
-            and isinstance(elem[1], int)
-            for elem in instance
-        )
-
-        characters = []
-        if is_tuple_of_point_int(encoded):
-
-            # Initialize a multiprocessing pool
-            pool = multiprocessing.Pool()
-
-            # Execute the decode function in parallel using the pool
-            characters = pool.starmap(
-                partial(self.decode, alphabet_size=alphabet_size, lengthy=False),
-                [(i[0], i[1]) for i in encoded],
+        def is_tuple_of_point_int(instance):
+            return isinstance(instance, tuple) and all(
+                isinstance(elem, tuple)
+                and len(elem) == 2
+                and isinstance(elem[0], Point)
+                and isinstance(elem[1], int)
+                for elem in instance
             )
 
-            # Close the pool
-            pool.close()
-            pool.join()
+        # Decode tuple of (Point, int) pairs
+        if not is_tuple_of_point_int(encoded_data):
+            raise ValueError(
+                "Invalid input: `encoded_data` must be a tuple of (Point, int) pairs when `chunked` is True."
+            )
+
+        # Initialize a multiprocessing pool
+        pool = multiprocessing.Pool()
+
+        # Execute the decode function in parallel using the pool
+        characters = pool.starmap(
+            partial(self.decode, alphabet_size=alphabet_size, chunked=False),
+            [(i[0], i[1]) for i in encoded_data],
+        )
+
+        # Close the pool
+        pool.close()
+        pool.join()
 
         return "".join(characters)
 
@@ -254,7 +288,7 @@ class DigitalSignature:
 
         (r, s) = (0, 0)
         while r == 0 or s == 0:
-            k = randint(a=1, b=self.curve.n - 1)
+            k = secrets.randbelow(self.curve.n - 1) + 1
             p = self.curve.multiply_point(k, self.curve.G)
             r = p.x % self.curve.n
             s = (
@@ -276,7 +310,7 @@ class DigitalSignature:
 
         Args:
             public_key (Point): The public key associated with the signer.
-            message_hash (bytes): The hash of the message that was supposedly signed. The hash
+            message_hash (int): The hash of the message that was supposedly signed. The hash
                 function used should match the one used during message signing. Common hash functions
                 include SHA-256 and SHA-384.
             r (int): The first component (r) of the ECDSA signature.

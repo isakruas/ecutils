@@ -1,10 +1,15 @@
 import unittest
 
+from ecutils import settings
 from ecutils.protocols import MasseyOmura
 
 
 class TestMasseyOmura(unittest.TestCase):
     """Test cases for the Massey-Omura encryption exchange."""
+
+    def setUp(self):
+        """Set up test cases environment."""
+        settings.LRU_CACHE_MAXSIZE = 0
 
     def test_encryption_decryption(self):
         """Validate the complete encryption and decryption process."""
