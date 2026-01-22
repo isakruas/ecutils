@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Optional
 
@@ -36,7 +36,8 @@ class JacobianPoint:
 class EllipticCurveOperations:
     """Implements mathematical operations for elliptic curves."""
 
-    use_projective_coordinates: bool = True
+    def __init__(self, curve: "EllipticCurve"):
+        self.curve = curve
 
     @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
     def add_points(self, p1: Point, p2: Point) -> Point:
@@ -52,19 +53,18 @@ class EllipticCurveOperations:
         Raises:
             ValueError: If the input point is not on the elliptic curve.
         """
-
         if p1.x is None or p1.y is None:
             return p2
 
         if p2.x is None or p2.y is None:
             return p1
 
-        if not self.is_point_on_curve(p1) or not self.is_point_on_curve(p2):
+        if not self.curve.is_point_on_curve(p1) or not self.curve.is_point_on_curve(p2):
             raise ValueError(
                 "Invalid input: One or both of the input points are not on the elliptic curve."
             )
 
-        if self.use_projective_coordinates:
+        if self.curve.use_projective_coordinates:
             p1_jacobian = self.to_jacobian(p1)
             p2_jacobian = self.to_jacobian(p2)
             p3_jacobian = self.jacobian_add_points(p1_jacobian, p2_jacobian)
@@ -72,15 +72,15 @@ class EllipticCurveOperations:
 
         if p1 == p2:
             return self.double_point(p1)
-        n = (p2.y - p1.y) % self.p
-        d = (p2.x - p1.x) % self.p
+        n = (p2.y - p1.y) % self.curve.p
+        d = (p2.x - p1.x) % self.curve.p
         try:
-            inv = pow(d, -1, self.p)
+            inv = pow(d, -1, self.curve.p)
         except ValueError:
             return Point()  # Point at infinity
-        s = (n * inv) % self.p
-        x_3 = (s**2 - p1.x - p2.x) % self.p
-        y_3 = (s * (p1.x - x_3) - p1.y) % self.p
+        s = (n * inv) % self.curve.p
+        x_3 = (s**2 - p1.x - p2.x) % self.curve.p
+        y_3 = (s * (p1.x - x_3) - p1.y) % self.curve.p
         return Point(x_3, y_3)
 
     @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
@@ -89,21 +89,20 @@ class EllipticCurveOperations:
         if p.x is None or p.y is None:
             return p
 
-        if not self.is_point_on_curve(p):
+        if not self.curve.is_point_on_curve(p):
             raise ValueError(
                 "Invalid input: One or both of the input points are not on the elliptic curve."
             )
 
-        n = (3 * p.x**2 + self.a) % self.p
-        d = (2 * p.y) % self.p
-        # try:
-        #     inv = pow(d, -1, self.p)
-        # except ValueError:
-        #     return Point()  # Point at infinity
-        inv = pow(d, -1, self.p)
-        s = (n * inv) % self.p
-        x_3 = (s**2 - p.x - p.x) % self.p
-        y_3 = (s * (p.x - x_3) - p.y) % self.p
+        n = (3 * p.x**2 + self.curve.a) % self.curve.p
+        d = (2 * p.y) % self.curve.p
+        try:
+            inv = pow(d, -1, self.curve.p)
+        except ValueError:
+            return Point()  # Point at infinity
+        s = (n * inv) % self.curve.p
+        x_3 = (s**2 - p.x - p.x) % self.curve.p
+        y_3 = (s * (p.x - x_3) - p.y) % self.curve.p
         return Point(x_3, y_3)
 
     @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
@@ -116,45 +115,31 @@ class EllipticCurveOperations:
 
         Returns:
             Point: The resulting point after multiplication.
-
-        Raises:
-            ValueError: If k is not in the range 0 < k < n.
         """
 
-        if k == 0 or k >= self.n:
-            raise ValueError("k is not in the range 0 < k < n")
+        if p.x is None or p.y is None or k == 0:
+            return Point()
 
-        if self.use_projective_coordinates:
+        k = k % self.curve.n
+
+        if self.curve.use_projective_coordinates:
             p_jacobian = self.to_jacobian(p)
             q_jacobian = self.jacobian_multiply_point(k, p_jacobian)
             p1 = self.to_affine(q_jacobian)
             if p1.x is None or p1.y is None:
                 return p1
-            if not self.is_point_on_curve(p1):
+            if not self.curve.is_point_on_curve(p1):
                 raise ValueError(
                     "Invalid input: One or both of the input points are not on the elliptic curve."
                 )
             return p1
 
-        r = None
-
-        num_bits = k.bit_length()
-
-        for i in range(num_bits - 1, -1, -1):
-            if r is None:
-                r = p
-                continue
-
-            if r.x is None and r.y is None:
-                r = p
-
-            r = self.double_point(r)
-
-            if (k >> i) & 1:
-                if r.x is None and r.y is None:
-                    r = p
-                else:
-                    r = self.add_points(r, p)
+        r = Point()
+        while k > 0:
+            if k & 1:
+                r = self.add_points(r, p)
+            p = self.double_point(p)
+            k >>= 1
         return r
 
     @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
@@ -167,12 +152,12 @@ class EllipticCurveOperations:
         if p2.x is None or p2.y is None:
             return p1
 
-        z1z1 = p1.z * p1.z % self.p
-        z2z2 = p2.z * p2.z % self.p
-        u1 = p1.x * z2z2 % self.p
-        u2 = p2.x * z1z1 % self.p
-        s1 = p1.y * p2.z * z2z2 % self.p
-        s2 = p2.y * p1.z * z1z1 % self.p
+        z1z1 = p1.z * p1.z % self.curve.p
+        z2z2 = p2.z * p2.z % self.curve.p
+        u1 = p1.x * z2z2 % self.curve.p
+        u2 = p2.x * z1z1 % self.curve.p
+        s1 = p1.y * p2.z * z2z2 % self.curve.p
+        s2 = p2.y * p1.z * z1z1 % self.curve.p
 
         if u1 == u2:
             if s1 != s2:
@@ -180,13 +165,13 @@ class EllipticCurveOperations:
             return self.jacobian_double_point(p1)
 
         h = u2 - u1
-        i = (2 * h) * (2 * h) % self.p
-        j = h * i % self.p
-        r = 2 * (s2 - s1) % self.p
-        v = u1 * i % self.p
-        x = (r * r - j - 2 * v) % self.p
-        y = (r * (v - x) - 2 * s1 * j) % self.p
-        z = ((p1.z + p2.z) * (p1.z + p2.z) - z1z1 - z2z2) * h % self.p
+        i = (2 * h) * (2 * h) % self.curve.p
+        j = h * i % self.curve.p
+        r = 2 * (s2 - s1) % self.curve.p
+        v = u1 * i % self.curve.p
+        x = (r * r - j - 2 * v) % self.curve.p
+        y = (r * (v - x) - 2 * s1 * j) % self.curve.p
+        z = ((p1.z + p2.z) * (p1.z + p2.z) - z1z1 - z2z2) * h % self.curve.p
 
         return JacobianPoint(x, y, z)
 
@@ -199,13 +184,13 @@ class EllipticCurveOperations:
         if p.y == 0:
             return JacobianPoint()  # Point at infinity
 
-        ysq = p.y * p.y % self.p
-        zsqr = p.z * p.z % self.p
-        s = (4 * p.x * ysq) % self.p
-        m = (3 * p.x * p.x + self.a * zsqr * zsqr) % self.p
-        nx = (m * m - 2 * s) % self.p
-        ny = (m * (s - nx) - 8 * ysq * ysq) % self.p
-        nz = (2 * p.y * p.z) % self.p
+        ysq = p.y * p.y % self.curve.p
+        zsqr = p.z * p.z % self.curve.p
+        s = (4 * p.x * ysq) % self.curve.p
+        m = (3 * p.x * p.x + self.curve.a * zsqr * zsqr) % self.curve.p
+        nx = (m * m - 2 * s) % self.curve.p
+        ny = (m * (s - nx) - 8 * ysq * ysq) % self.curve.p
+        nz = (2 * p.y * p.z) % self.curve.p
 
         return JacobianPoint(nx, ny, nz)
 
@@ -251,34 +236,14 @@ class EllipticCurveOperations:
         """
         if point.x is None or point.y is None or point.z == 0:
             return Point()
-        inv_z = pow(point.z, -1, self.p)
-        return Point((point.x * inv_z**2) % self.p, (point.y * inv_z**3) % self.p)
-
-    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
-    def is_point_on_curve(self, p: Point) -> bool:
-        """Check if a point lies on the elliptic curve.
-
-        Args:
-            p (Point): The point to check.
-
-        Returns:
-            bool: True if the point is on the curve, False otherwise.
-        """
-
-        if p.x is None or p.y is None:
-            return False
-
-        if isinstance(p, JacobianPoint):
-            p = self.to_affine(p)
-
-        # The equation of the curve is y^2 = x^3 + ax + b. We check if the point satisfies this equation.
-        left_side = p.y**2 % self.p
-        right_side = (p.x**3 + self.a * p.x + self.b) % self.p
-        return left_side == right_side
+        inv_z = pow(point.z, -1, self.curve.p)
+        return Point(
+            (point.x * inv_z**2) % self.curve.p, (point.y * inv_z**3) % self.curve.p
+        )
 
 
-@dataclass(frozen=True)
-class EllipticCurve(EllipticCurveOperations):
+@dataclass(eq=False)
+class EllipticCurve:
     """Represents the parameters and operations of an elliptic curve.
 
     Attributes:
@@ -297,3 +262,47 @@ class EllipticCurve(EllipticCurveOperations):
     G: Point
     n: int
     h: int
+    use_projective_coordinates: bool = True
+    _ops: EllipticCurveOperations = field(init=False, repr=False)
+
+    def __post_init__(self):
+        self._ops = EllipticCurveOperations(self)
+
+    def __hash__(self):
+        return hash((self.p, self.a, self.b, self.G, self.n, self.h))
+
+    def add_points(self, p1: Point, p2: Point) -> Point:
+        return self._ops.add_points(p1, p2)
+
+    def double_point(self, p: Point) -> Point:
+        return self._ops.double_point(p)
+
+    def multiply_point(self, k: int, p: Point) -> Point:
+        return self._ops.multiply_point(k, p)
+
+    def to_jacobian(self, point: Point) -> "JacobianPoint":
+        return self._ops.to_jacobian(point)
+
+    def to_affine(self, point: "JacobianPoint") -> Point:
+        return self._ops.to_affine(point)
+
+    @lru_cache(maxsize=LRU_CACHE_MAXSIZE, typed=True)
+    def is_point_on_curve(self, p: Point) -> bool:
+        """Check if a point lies on the elliptic curve.
+
+        Args:
+            p (Point): The point to check.
+
+        Returns:
+            bool: True if the point is on the curve, False otherwise.
+        """
+        if isinstance(p, JacobianPoint):
+            p = self.to_affine(p)
+
+        if p.x is None or p.y is None:
+            return False
+
+        # The equation of the curve is y^2 = x^3 + ax + b. We check if the point satisfies this equation.
+        left_side = p.y**2 % self.p
+        right_side = (p.x**3 + self.a * p.x + self.b) % self.p
+        return left_side == right_side

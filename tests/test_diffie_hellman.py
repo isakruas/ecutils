@@ -1,10 +1,15 @@
 import unittest
 
+from ecutils import settings
 from ecutils.protocols import DiffieHellman
 
 
 class TestDiffieHellman(unittest.TestCase):
     """Test cases for the Diffie-Hellman key exchange."""
+
+    def setUp(self):
+        """Set up test cases environment."""
+        settings.LRU_CACHE_MAXSIZE = 0
 
     def test_compute_shared_secret(self):
         """Validate that both parties compute the same shared secret."""

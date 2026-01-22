@@ -7,7 +7,6 @@ from ecutils.utils import calculate_file_hash
 
 
 class TestFileHashing(unittest.TestCase):
-
     def generate_expected_hash(self, file_path, block_size=16384):
         """Computes the expected SHA-256 hash using hashlib."""
         hash_sha256 = hashlib.sha256()

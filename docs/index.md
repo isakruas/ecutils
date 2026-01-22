@@ -1,38 +1,72 @@
 # ECUtils Documentation
 
-Welcome to the comprehensive guide for ECUtils, a versatile Python library crafted for cryptographic operations utilizing elliptic curves. ECUtils offers essential functionalities like point manipulation on elliptic curves, digital signatures, and secure communication protocols.
+Welcome to the documentation for ECUtils, a pure Python library for elliptic curve cryptography (ECC). ECUtils provides a clean and straightforward interface for common ECC operations, algorithms, and protocols.
 
-Our documentation is meticulously structured to help you get started, understand the nuances of the library, and implement ECUtils in real-world cryptographic scenarios effectively.
+## Quick Start
 
-## Contents
+```python
+import hashlib
+import secrets
+from ecutils.algorithms import DigitalSignature
 
-- **Getting Started:** Discover how to install and set up ECUtils in your Python environment. This section will guide you through the foundational steps to start using the ECUtils package. We provide detailed installation instructions, compatibility details, and tips to ensure a seamless setup process.
+# Generate a private key and create a signature instance
+private_key = secrets.randbits(256)
+ds = DigitalSignature(private_key, curve_name="secp256r1")
 
-- **Basic Usage:** If you're looking to familiarize yourself with ECUtils, this is the perfect entry point. You'll find clear examples and explanations of core functions for carrying out basic elliptic curve operations.
+# Sign a message
+message = b"Hello, ECUtils!"
+message_hash = int.from_bytes(hashlib.sha256(message).digest(), "big")
+r, s = ds.generate_signature(message_hash)
 
-### Core Components:
+# Verify the signature
+is_valid = ds.verify_signature(ds.public_key, message_hash, r, s)
+print(f"Valid: {is_valid}")  # Output: Valid: True
+```
 
-- **Point:** Dive into the specifics of representing and manipulating points on elliptic curves. Here, we explain the properties and methods of the `Point` class, which are fundamental to understanding how elliptic curve points relate to cryptographic algorithms.
+## Documentation Overview
 
-- **Elliptic Curve:** Explore the mathematical foundation provided by the `EllipticCurve` class. This section is dedicated to illuminating the properties of elliptic curves used in ECUtils, helping you work with predefined curve parameters.
+### Getting Started
 
-### Key Algorithms:
+- **[Installation](installation.md):** How to install ECUtils via pip or from source.
+- **[Usage Guide](usage.md):** Practical examples for common use cases.
+- **[Configuration](configuration.md):** Customize cache size and coordinate systems.
 
-- **Koblitz:** Gain an in-depth understanding of the Koblitz method, an algorithm for converting messages into elliptic curve points. The Koblitz approach is crucial for cryptographic applications where embedding information within curve points is necessary.
+### API Reference
 
-- **Digital Signature:** Learn how to use ECUtils to generate and verify secure, indisputable digital signatures with the `DigitalSignature` class—a vital skill for those looking to implement trust and integrity in their applications.
+- **[Core](reference/core.md):** `Point`, `JacobianPoint`, and `EllipticCurve` classes for fundamental operations.
+- **[Algorithms](reference/algorithms.md):** `DigitalSignature` (ECDSA) and `Koblitz` encoding.
+- **[Protocols](reference/protocols.md):** `DiffieHellman` (ECDH) and `MasseyOmura` key exchange.
+- **[Curves](reference/curves.md):** Pre-configured curve parameters (secp192k1 through secp521r1).
+- **[Utils](reference/utils.md):** Utility functions.
 
-### Protocols for Secure Communication:
+### Advanced Topics
 
-- **Diffie-Hellman:** Understand how ECUtils enables secure key exchanges using the Diffie-Hellman protocol. This section will help you establish shared secrets between parties over public channels confidently.
+- **[Benchmarks](benchmarks.md):** Performance data across configurations and curves.
+- **[Security Considerations](security.md):** Best practices for secure implementations.
 
-- **Massey-Omura:** Master the steps of the Massey-Omura encryption protocol with elliptic curves. Find out how to use ECUtils for secure message encryption and decryption exchanges between two parties.
+## Features
 
-### Reference Material:
+| Feature | Description |
+|---------|-------------|
+| **Core Operations** | Point addition, doubling, scalar multiplication |
+| **Digital Signatures** | ECDSA sign and verify |
+| **Key Exchange** | Diffie-Hellman (ECDH), Massey-Omura |
+| **Message Encoding** | Koblitz method |
+| **Supported Curves** | secp192k1/r1, secp224k1/r1, secp256k1/r1, secp384r1, secp521r1 |
+| **Performance** | LRU caching, Jacobian coordinates |
 
-- **Curves:** Access a complete catalog of preset elliptic curve parameters within ECUtils. This resource is vital for those who need detailed knowledge of supported curves and their characteristics for robust cryptographic operations.
+## Supported Curves
 
-By exploring the guided instructions in these sections, you can confidently build systems that require strong elliptic curve cryptography features. If you have any questions or need additional assistance, please consider visiting our contact page or submitting an issue on our GitHub repository.
+| Curve | Key Size | Common Use |
+|-------|----------|------------|
+| secp192k1 | 192-bit | Legacy |
+| secp192r1 | 192-bit | NIST P-192 |
+| secp224k1 | 224-bit | Legacy |
+| secp224r1 | 224-bit | NIST P-224 |
+| secp256k1 | 256-bit | Bitcoin, Ethereum |
+| secp256r1 | 256-bit | TLS, NIST P-256 |
+| secp384r1 | 384-bit | NIST P-384 |
+| secp521r1 | 521-bit | NIST P-521 |
 
 ## License
 
