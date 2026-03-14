@@ -45,9 +45,13 @@ class TestKoblitz(unittest.TestCase):
 
         koblitz = Koblitz(curve_name="secp192k1")
 
-        with patch.object(type(koblitz), "_curve", new_callable=lambda: property(
-            lambda self: CurveParams(p=7, a=1, b=1, n=7, h=1)
-        )):
+        with patch.object(
+            type(koblitz),
+            "_curve",
+            new_callable=lambda: property(
+                lambda self: CurveParams(p=7, a=1, b=1, n=7, h=1)
+            ),
+        ):
             # With such a small curve, Koblitz's method will likely fail
             # But to guarantee failure, we mock is_on_curve
             with patch("ecutils.core.point.Point.is_on_curve", return_value=False):

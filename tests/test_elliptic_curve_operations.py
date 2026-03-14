@@ -92,19 +92,27 @@ class TestEllipticCurveOperations(unittest.TestCase):
         )
         calculated_sum = p1_affine + p2_affine
         self.assertEqual(
-            calculated_sum.x, expected_sum.x, "Point addition result is incorrect (affine)."
+            calculated_sum.x,
+            expected_sum.x,
+            "Point addition result is incorrect (affine).",
         )
         self.assertEqual(
-            calculated_sum.y, expected_sum.y, "Point addition result is incorrect (affine)."
+            calculated_sum.y,
+            expected_sum.y,
+            "Point addition result is incorrect (affine).",
         )
 
         # Test with Jacobian coordinates
         calculated_sum = self.point1 + self.point2
         self.assertEqual(
-            calculated_sum.x, expected_sum.x, "Point addition result is incorrect (Jacobian)."
+            calculated_sum.x,
+            expected_sum.x,
+            "Point addition result is incorrect (Jacobian).",
         )
         self.assertEqual(
-            calculated_sum.y, expected_sum.y, "Point addition result is incorrect (Jacobian)."
+            calculated_sum.y,
+            expected_sum.y,
+            "Point addition result is incorrect (Jacobian).",
         )
 
     def test_point_doubling(self):
@@ -122,19 +130,27 @@ class TestEllipticCurveOperations(unittest.TestCase):
         )
         calculated_double = p1_affine + p1_affine
         self.assertEqual(
-            calculated_double.x, expected_double.x, "Point doubling result is incorrect (affine)."
+            calculated_double.x,
+            expected_double.x,
+            "Point doubling result is incorrect (affine).",
         )
         self.assertEqual(
-            calculated_double.y, expected_double.y, "Point doubling result is incorrect (affine)."
+            calculated_double.y,
+            expected_double.y,
+            "Point doubling result is incorrect (affine).",
         )
 
         # Test with Jacobian coordinates
         calculated_double = self.point1 + self.point1
         self.assertEqual(
-            calculated_double.x, expected_double.x, "Point doubling result is incorrect (Jacobian)."
+            calculated_double.x,
+            expected_double.x,
+            "Point doubling result is incorrect (Jacobian).",
         )
         self.assertEqual(
-            calculated_double.y, expected_double.y, "Point doubling result is incorrect (Jacobian)."
+            calculated_double.y,
+            expected_double.y,
+            "Point doubling result is incorrect (Jacobian).",
         )
 
     def test_invalid_point_creation(self):
@@ -274,7 +290,9 @@ class TestEllipticCurveOperations(unittest.TestCase):
         )
 
         # With affine coordinates
-        affine_curve = CurveParams(p=13, a=1, b=0, n=4, h=1, coord=CoordinateSystem.AFFINE)
+        affine_curve = CurveParams(
+            p=13, a=1, b=0, n=4, h=1, coord=CoordinateSystem.AFFINE
+        )
         point_at_infinity = Point(curve=affine_curve)
 
         result = 3 * point_at_infinity

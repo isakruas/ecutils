@@ -28,6 +28,4 @@ class TestDigitalSignature(unittest.TestCase):
         with self.assertRaises(
             ValueError, msg="A ValueError should be raised for invalid r and s."
         ):
-            self.ds.verify(
-                self.ds.public_key, message_hash, invalid_r, invalid_s
-            )
+            self.ds.verify(self.ds.public_key, message_hash, invalid_r, invalid_s)
