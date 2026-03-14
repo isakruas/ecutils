@@ -35,9 +35,7 @@ def to_jacobian(pt: Point) -> _JacobianPoint:
     return _JacobianPoint(pt.x, pt.y, 1)
 
 
-def to_affine(
-    jp: _JacobianPoint, curve: CurveParams
-) -> tuple[int | None, int | None]:
+def to_affine(jp: _JacobianPoint, curve: CurveParams) -> tuple[int | None, int | None]:
     """Convert a _JacobianPoint back to affine (x, y) coordinates."""
     if jp.x is None or jp.y is None or jp.z == 0:
         return (None, None)
