@@ -6,22 +6,25 @@ Welcome to the documentation for ECUtils, a pure Python library for elliptic cur
 
 ```python
 import hashlib
-import secrets
-from ecutils.algorithms import DigitalSignature
+from ecutils import DigitalSignature
 
-# Generate a private key and create a signature instance
-private_key = secrets.randbits(256)
-ds = DigitalSignature(private_key, curve_name="secp256r1")
+# Generate a signature instance with a private key
+private_key = 123456789
+ds = DigitalSignature(private_key, curve_name="secp256k1")
 
 # Sign a message
 message = b"Hello, ECUtils!"
 message_hash = int.from_bytes(hashlib.sha256(message).digest(), "big")
-r, s = ds.generate_signature(message_hash)
+r, s = ds.sign(message_hash)
 
 # Verify the signature
-is_valid = ds.verify_signature(ds.public_key, message_hash, r, s)
+is_valid = ds.verify(ds.public_key, message_hash, r, s)
 print(f"Valid: {is_valid}")  # Output: Valid: True
 ```
+
+## Module Structure
+
+![ECUtils Module Structure](assets/module_structure.svg)
 
 ## Documentation Overview
 
@@ -33,11 +36,11 @@ print(f"Valid: {is_valid}")  # Output: Valid: True
 
 ### API Reference
 
-- **[Core](reference/core.md):** `Point`, `JacobianPoint`, and `EllipticCurve` classes for fundamental operations.
+- **[Core](reference/core.md):** `Point`, `CurveParams`, and `CoordinateSystem` for fundamental operations.
 - **[Algorithms](reference/algorithms.md):** `DigitalSignature` (ECDSA) and `Koblitz` encoding.
 - **[Protocols](reference/protocols.md):** `DiffieHellman` (ECDH) and `MasseyOmura` key exchange.
-- **[Curves](reference/curves.md):** Pre-configured curve parameters (secp192k1 through secp521r1).
-- **[Utils](reference/utils.md):** Utility functions.
+- **[Curves](reference/curves.md):** Pre-defined curve parameters and registry functions.
+- **[Utils](reference/utils.md):** Configuration settings.
 
 ### Advanced Topics
 
@@ -48,7 +51,7 @@ print(f"Valid: {is_valid}")  # Output: Valid: True
 
 | Feature | Description |
 |---------|-------------|
-| **Core Operations** | Point addition, doubling, scalar multiplication |
+| **Core Operations** | Point addition, subtraction, negation, scalar multiplication via operators (`+`, `-`, `*`) |
 | **Digital Signatures** | ECDSA sign and verify |
 | **Key Exchange** | Diffie-Hellman (ECDH), Massey-Omura |
 | **Message Encoding** | Koblitz method |
@@ -70,18 +73,7 @@ print(f"Valid: {is_valid}")  # Output: Valid: True
 
 ## License
 
-ECUtils is available under the [MIT License](https://opensource.org/licenses/MIT), providing flexibility for both personal and commercial use. The MIT License is one of the least restrictive licenses favored in the open-source community for its minimal limitations.
-
-By using ECUtils, you agree to the license terms, which allow you to:
-
-- **Use** the software for any purpose.
-- **Modify** it to suit your needs.
-- **Distribute** the original or modified software.
-- **Include** the software in your proprietary applications.
-
-However, please be aware that the software comes "as is," with no warranty of any kind, whether express or implied. Under no circumstances shall the authors or copyright holders be liable for any claim, damages or other liabilities arising from the use of the software.
-
-Before incorporating ECUtils, it's advised to read the full license text, available in the `LICENSE.md` file in the [source code repository](https://github.com/isakruas/ecutils/blob/master/LICENSE.md) or on the official website.
+ECUtils is available under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## Language-Specific Libraries for Elliptic Curve Cryptography
 
@@ -90,5 +82,3 @@ In addition to the Python module, there are other language-specific libraries av
 - **JavaScript Library for Elliptic Curve Cryptography**: The `js-ecutils` package provides elliptic curve functionalities tailored for JavaScript developers. You can find it on [GitHub](https://github.com/isakruas/js-ecutils).
 
 - **Go Library for Elliptic Curve Cryptography**: The `go-ecutils` library offers similar elliptic curve utilities for Go developers. More information and documentation can be found on [GitHub](https://github.com/isakruas/go-ecutils).
-
-These libraries enable developers to utilize elliptic curve cryptography in their preferred programming environments, ensuring flexibility and ease of integration.

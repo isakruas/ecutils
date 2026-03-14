@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements-tests.txt
+          .venv/bin/pip install .
+
+      - name: Lint and Format Check
+        run: |
+          .venv/bin/ruff format --check .
+          .venv/bin/ruff check .
+
+      - name: Run tests
+        run: |
+          .venv/bin/pytest tests/ -v

@@ -1,73 +1,145 @@
-# Practical Guide
+# Usage Guide
 
-Discover how to harness the power of the `ecutils` library in the examples below. With `ecutils`, you can take your applications to the next level by using Elliptic Curve Cryptography (ECC) for tasks like encoding messages, verifying signatures, and establishing secure communication channels. Let's get started!
+Practical examples for common use cases with ECUtils.
 
-### Encoding Messages with Koblitz
+## Core Operations
 
-Convert plain text into secure elliptic curve points with the Koblitz method. Here's the process:
+### Creating Points and Curves
 
 ```python
-# First, initialize the Koblitz with your chosen ECC curve.
-from ecutils.algorithms import Koblitz
+from ecutils import Point, CurveParams, CoordinateSystem
 
-koblitz = Koblitz(curve_name='secp192k1')
+# Define a curve: y² = x³ + x + 1 (mod 23)
+curve = CurveParams(p=23, a=1, b=1, n=28, h=1)
 
-# Now, let's encode a message into a point on the curve.
-message = 'Hello, world!'
-encoded_point, j = koblitz.encode(message)
+# Create points on the curve
+P = Point(0, 1, curve)
+Q = Point(6, 19, curve)
 
-# 'encoded_point' is now on the curve, and 'j' will aid in decoding later on.
+# Point at infinity (identity element)
+inf = Point(curve=curve)
 ```
 
-### Generating Digital Signatures
-
-Assure the authenticity and integrity of your messages with digital signatures. Here's how you can create one:
+### Arithmetic with Operators
 
 ```python
-# Start by getting your securely generated ECDSA private key.
-from ecutils.algorithms import DigitalSignature
+P + Q       # point addition
+P - Q       # point subtraction
+-P          # negation (additive inverse)
+5 * P       # scalar multiplication
+P * 5       # scalar multiplication (commutative)
+P == Q      # equality
+```
+
+### Using Pre-defined Curves
+
+```python
+from ecutils import get_curve, get_generator
+
+curve = get_curve("secp256k1")
+G = get_generator("secp256k1")
+
+# Private key → public key
+private_key = 0xDEADBEEFCAFE
+public_key = private_key * G
+print(public_key.is_on_curve())  # True
+```
+
+### Coordinate Systems
+
+```python
+from ecutils import CurveParams, CoordinateSystem
+
+# Jacobian coordinates (default — faster)
+curve_jac = CurveParams(p=23, a=1, b=1, n=28, h=1)
+
+# Affine coordinates (explicit)
+curve_aff = CurveParams(p=23, a=1, b=1, n=28, h=1, coord=CoordinateSystem.AFFINE)
+```
+
+## Encoding Messages with Koblitz
+
+Convert text into elliptic curve points and back:
+
+```python
+from ecutils import Koblitz
+
+kob = Koblitz(curve_name="secp521r1")
+
+# Encode a message
+message = "Hello, world!"
+point, j = kob.encode(message)
+
+# Decode back
+decoded = kob.decode(point, j)
+assert decoded == message
+```
+
+For Unicode support, specify a larger alphabet size:
+
+```python
+kob = Koblitz(curve_name="secp521r1", alphabet_size=2**16)
+point, j = kob.encode("Hello!")
+```
+
+## Digital Signatures (ECDSA)
+
+Sign and verify messages:
+
+```python
+import hashlib
+from ecutils import DigitalSignature
 
 private_key = 123456789
+ds = DigitalSignature(private_key, curve_name="secp256k1")
 
-# A good practice is to hash the message prior to signing.
-message = 'Secure communication'
-message_hash = hash(message)
+# Hash the message
+message_hash = int(hashlib.sha256(b"Secure communication").hexdigest(), 16)
 
-# Instantiate a Digital Signature with your private key.
-ds = DigitalSignature(private_key)
+# Sign
+r, s = ds.sign(message_hash)
 
-# Time to sign the message's hash.
-r, s = ds.generate_signature(message_hash)
-
-# Your signature, comprised of 'r' and 's', is prepared to confirm your message's authenticity.
+# Verify
+is_valid = ds.verify(ds.public_key, message_hash, r, s)
+assert is_valid
 ```
 
-### Participating in Diffie-Hellman Key Exchange
+## Diffie-Hellman Key Exchange
 
-Diffie-Hellman protocol is essential for creating a shared secret over an insecure channel without exposing private keys. Here's how it works:
+Establish a shared secret between two parties:
 
 ```python
-# You'll need private keys for two participants.
-from ecutils.protocols import DiffieHellman
+from ecutils import DiffieHellman
 
-alice_private = 12345
-bob_private = 67890
+alice = DiffieHellman(private_key=12345, curve_name="secp256k1")
+bob = DiffieHellman(private_key=67890, curve_name="secp256k1")
 
-# Set up instances for Alice and Bob.
-alice_dh = DiffieHellman(alice_private)
-bob_dh = DiffieHellman(bob_private)
+# Exchange public keys and compute shared secret
+secret_alice = alice.compute_shared_secret(bob.public_key)
+secret_bob = bob.compute_shared_secret(alice.public_key)
 
-# Alice computes a shared secret using Bob's public key.
-alice_shared_secret = alice_dh.compute_shared_secret(bob_dh.public_key)
-
-# Bob does the same with Alice's public key.
-bob_shared_secret = bob_dh.compute_shared_secret(alice_dh.public_key)
-
-# Ideally, Alice and Bob now have the same shared secret.
+assert secret_alice == secret_bob
 ```
 
-These examples should help you integrate ECC features into your projects. Whether you wish to safely encode data, create and verify signatures, or establish secure communication, `ecutils` is here to help.
+## Massey-Omura Three-Pass Protocol
 
-Remember to peruse the `ecutils` documentation for specific details. With `ecutils` in your toolkit, you're equipped to enhance your applications' security. Happy coding!
+Exchange a secret message without prior key exchange:
 
-In our upcoming sessions, we'll delve into each of the package's classes to expand your understanding of `ecutils` and its array of capabilities. Stay tuned!
+```python
+from ecutils import MasseyOmura, Koblitz
+
+# Encode message as a curve point
+kob = Koblitz(curve_name="secp521r1")
+M, j = kob.encode("secret message")
+
+alice = MasseyOmura(private_key=0xA1, curve_name="secp521r1")
+bob = MasseyOmura(private_key=0xB2, curve_name="secp521r1")
+
+# Three passes
+c1 = alice.encrypt(M)        # Alice → Bob
+c2 = bob.encrypt(c1)         # Bob → Alice
+c3 = alice.decrypt(c2)       # Alice → Bob
+plaintext = bob.decrypt(c3)  # Bob recovers M
+
+assert kob.decode(plaintext, j) == "secret message"
+```

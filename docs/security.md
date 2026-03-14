@@ -1,6 +1,6 @@
 # Security Considerations
 
-This document outlines important security considerations when using ECUtils for cryptographic applications. While ECUtils provides robust implementations of elliptic curve algorithms, proper usage is essential for maintaining security.
+This document outlines important security considerations when using ECUtils for cryptographic applications.
 
 ## Intended Use
 
@@ -76,7 +76,7 @@ Reusing a nonce with the same private key allows an attacker to recover the priv
 Always verify signatures before trusting signed data:
 
 ```python
-is_valid = ds.verify_signature(public_key, message_hash, r, s)
+is_valid = ds.verify(public_key, message_hash, r, s)
 if not is_valid:
     raise SecurityError("Invalid signature")
 ```
@@ -89,27 +89,38 @@ The shared secret from ECDH should never be used directly as an encryption key. 
 
 ```python
 import hashlib
+from ecutils import DiffieHellman
+
+dh = DiffieHellman(private_key=0xA1, curve_name="secp256k1")
 
 # Compute shared secret
 shared_point = dh.compute_shared_secret(other_public_key)
 
 # Derive encryption key using HKDF or similar
-shared_bytes = shared_point.x.to_bytes(32, 'big')
+shared_bytes = shared_point.x.to_bytes(32, "big")
 encryption_key = hashlib.sha256(shared_bytes).digest()
 ```
 
 ### Public Key Validation
 
-Always validate received public keys to prevent invalid curve attacks:
+Points are automatically validated on construction when curve parameters are provided:
 
 ```python
-from ecutils.curves import get
+from ecutils import Point, get_curve
 
-curve = get("secp256r1")
+curve = get_curve("secp256r1")
 
-# Validate that the point is on the curve
-if not curve.is_point_on_curve(received_public_key):
-    raise SecurityError("Invalid public key")
+# This will raise ValueError if the point is not on the curve
+try:
+    p = Point(x=1, y=2, curve=curve)
+except ValueError:
+    print("Invalid point — not on the curve")
+```
+
+You can also check explicitly:
+
+```python
+point.is_on_curve()  # Returns True/False
 ```
 
 ## Koblitz Encoding
@@ -136,13 +147,6 @@ The LRU cache can potentially leak information through cache timing:
 
 - Cache hits are faster than cache misses
 - An attacker with timing access might infer information about operations
-
-For highly sensitive applications, consider disabling the cache:
-
-```python
-from ecutils import settings
-settings.LRU_CACHE_MAXSIZE = 0
-```
 
 ## Memory Security
 
