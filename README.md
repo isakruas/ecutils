@@ -56,12 +56,26 @@ P * 5       # scalar multiplication (commutative)
 P == Q      # equality
 ```
 
-Points are automatically validated on construction:
+Curves are validated automatically — singular curves (4a³ + 27b² ≡ 0 mod p) are rejected:
+
+```python
+CurveParams(p=23, a=0, b=0, n=1)  # ❌ ValueError: singular curve
+```
+
+Points are validated on construction:
 
 ```python
 Point(0, 1, curve)   # ✅ valid
 Point(0, 5, curve)   # ❌ ValueError: not on the curve
 Point(curve=curve)   # ✅ point at infinity (identity)
+```
+
+Point compression and decompression:
+
+```python
+x, parity = P.compress()                      # (x, y_parity)
+recovered = Point.decompress(x, parity, curve) # full point
+assert recovered == P
 ```
 
 ### Pre-defined curves
@@ -122,19 +136,18 @@ assert kob.decode(plaintext, j) == "secret message"
 #### Digital Signature (ECDSA)
 
 ```python
-import hashlib
 from ecutils import DigitalSignature
 
 signer = DigitalSignature(private_key=123456789, curve_name="secp256k1")
 
-msg_hash = int(hashlib.sha256(b"hello").hexdigest(), 16)
-
-# Sign
-r, s = signer.sign(msg_hash)
+# Sign (SHA-256 hashing is done automatically)
+r, s = signer.sign_message(b"hello")
 
 # Verify
-assert signer.verify(signer.public_key, msg_hash, r, s)
+assert signer.verify_message(signer.public_key, b"hello", r, s)
 ```
+
+For manual hashing, use `sign(message_hash)` and `verify(pub, message_hash, r, s)` directly.
 
 #### Koblitz (message encoding)
 
@@ -174,7 +187,8 @@ ecutils/
 │   ├── digital_signature.py     # DigitalSignature (ECDSA)
 │   └── koblitz.py               # Koblitz
 └── utils/
-    └── settings.py              # global settings
+    ├── settings.py              # global settings
+    └── math.py                  # quadratic residue, modular square root
 ```
 
 ## Contributing
