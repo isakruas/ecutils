@@ -22,6 +22,9 @@ from ecutils.curves.registry import get_curve, get_generator
 from ecutils.protocols.diffie_hellman import DiffieHellman
 from ecutils.protocols.massey_omura import MasseyOmura
 
+# Utilities
+from ecutils.utils.math import is_quadratic_residue, modular_sqrt
+
 __version__ = "2.0.0"
 
 __all__ = [
@@ -37,4 +40,7 @@ __all__ = [
     # Protocols
     "DiffieHellman",
     "MasseyOmura",
+    # Utilities
+    "is_quadratic_residue",
+    "modular_sqrt",
 ]

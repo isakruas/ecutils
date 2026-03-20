@@ -26,6 +26,15 @@ from ecutils.curves.registry import get_generator
 class DiffieHellman:
     """Elliptic Curve Diffie-Hellman key exchange.
 
+    Protocol:
+        1. Alice computes her public key: H_A = d_A · G
+        2. Bob computes his public key:   H_B = d_B · G
+        3. Shared secret: S = d_A · H_B = d_B · H_A = d_A · d_B · G
+
+    Security relies on the Elliptic Curve Discrete Logarithm Problem
+    (ECDLP): given G and Q = d·G, it is computationally infeasible to
+    recover the private scalar *d*.
+
     Attributes:
         private_key: The private scalar (integer).
         curve_name:  Name of the curve (e.g. ``"secp256k1"``).

@@ -16,6 +16,7 @@ Usage
 
 from __future__ import annotations
 
+import hashlib
 import secrets
 from dataclasses import dataclass
 
@@ -55,6 +56,17 @@ class DigitalSignature:
     def sign(self, message_hash: int) -> tuple[int, int]:
         """Generate an ECDSA signature for a message hash.
 
+        Algorithm:
+            1. Choose random k ∈ [1, n-1]
+            2. R = k·G,  r = R.x mod n
+            3. s = (m + r·d) · k⁻¹ mod n   (d = private key, m = hash)
+
+        .. warning::
+
+           The nonce *k* must **never** be reused across different messages.
+           Reusing *k* leaks the private key (as demonstrated in the
+           2010 Sony PS3 ECDSA attack).
+
         Args:
             message_hash: Integer hash of the message (e.g. SHA-256).
 
@@ -73,6 +85,12 @@ class DigitalSignature:
 
     def verify(self, public_key: Point, message_hash: int, r: int, s: int) -> bool:
         """Verify an ECDSA signature.
+
+        Algorithm:
+            1. w  = s⁻¹ mod n
+            2. u₁ = m·w mod n,  u₂ = r·w mod n
+            3. R' = u₁·G + u₂·Q   (Q = public key)
+            4. Accept iff R'.x mod n = r
 
         Args:
             public_key:   The signer's public key point.
@@ -96,3 +114,32 @@ class DigitalSignature:
         u2 = (r * w) % n
         R = u1 * G + u2 * public_key
         return R.x % n == r
+
+    # ----- convenience wrappers -----
+
+    def sign_message(self, message: bytes) -> tuple[int, int]:
+        """Hash a message with SHA-256 and sign it.
+
+        Args:
+            message: The raw message bytes to sign.
+
+        Returns:
+            A tuple ``(r, s)`` representing the ECDSA signature.
+        """
+        message_hash = int(hashlib.sha256(message).hexdigest(), 16)
+        return self.sign(message_hash)
+
+    def verify_message(self, public_key: Point, message: bytes, r: int, s: int) -> bool:
+        """Hash a message with SHA-256 and verify its ECDSA signature.
+
+        Args:
+            public_key: The signer's public key point.
+            message:    The raw message bytes.
+            r:          First component of the signature.
+            s:          Second component of the signature.
+
+        Returns:
+            ``True`` if the signature is valid, ``False`` otherwise.
+        """
+        message_hash = int(hashlib.sha256(message).hexdigest(), 16)
+        return self.verify(public_key, message_hash, r, s)

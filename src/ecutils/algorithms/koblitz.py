@@ -24,6 +24,18 @@ from ecutils.curves.registry import get_curve
 class Koblitz:
     """Koblitz message encoding/decoding on an elliptic curve.
 
+    Encoding algorithm:
+        1. Convert the message string to an integer *m* using base-α
+           positional encoding (α = alphabet_size).
+        2. For j = 1, 2, ..., d-1 compute x = d·m + j (mod p).
+        3. Test if x³ + ax + b is a quadratic residue mod p (see
+           :func:`ecutils.utils.math.is_quadratic_residue`).
+        4. If yes, compute y = √(x³ + ax + b) mod p and return
+           ``(Point(x, y), j)``.
+
+    With d = 100 the probability of failure per attempt is ≈ 1/2, so the
+    overall failure probability after 99 attempts is ≈ 2⁻⁹⁹.
+
     Attributes:
         curve_name: Name of the curve (e.g. ``"secp521r1"``).
                     Larger curves can encode longer messages in a single point.

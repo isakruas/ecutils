@@ -29,3 +29,25 @@ class TestDigitalSignature(unittest.TestCase):
             ValueError, msg="A ValueError should be raised for invalid r and s."
         ):
             self.ds.verify(self.ds.public_key, message_hash, invalid_r, invalid_s)
+
+    def test_sign_message_and_verify_message(self):
+        """sign_message + verify_message should roundtrip correctly."""
+        msg = b"Hello, ECDSA!"
+        r, s = self.ds.sign_message(msg)
+        self.assertTrue(self.ds.verify_message(self.ds.public_key, msg, r, s))
+
+    def test_verify_message_wrong_message(self):
+        """Verifying with a different message should fail."""
+        msg = b"Original message"
+        r, s = self.ds.sign_message(msg)
+        self.assertFalse(self.ds.verify_message(self.ds.public_key, b"Tampered", r, s))
+
+    def test_sign_message_cross_compatibility(self):
+        """sign_message should produce the same result as manual SHA-256 + sign."""
+        import hashlib
+
+        msg = b"Cross-check"
+        msg_hash = int(hashlib.sha256(msg).hexdigest(), 16)
+        r, s = self.ds.sign_message(msg)
+        # Verify using the low-level verify with the same hash
+        self.assertTrue(self.ds.verify(self.ds.public_key, msg_hash, r, s))

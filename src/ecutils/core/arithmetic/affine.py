@@ -1,6 +1,19 @@
 # ecutils/core/arithmetic/affine.py
 
-"""Elliptic curve arithmetic in affine coordinates."""
+"""Elliptic curve arithmetic in affine coordinates.
+
+In affine coordinates a point on the curve y² = x³ + ax + b (mod p) is
+represented directly by its (x, y) pair.  Each addition or doubling
+requires one modular inversion, making this system straightforward but
+slower than projective alternatives for scalar multiplication.
+
+.. note::
+
+   These routines are **not** constant-time and should not be used in
+   production contexts where timing side-channels are a concern.
+   See RFC 6090, Section 4 for background on secure implementation
+   considerations.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +27,20 @@ from ecutils.utils.settings import LRU_CACHE_MAXSIZE
 def affine_double(
     px: int | None, py: int | None, curve: CurveParams
 ) -> tuple[int | None, int | None]:
-    """Double a point in affine coordinates."""
+    """Double a point in affine coordinates.
+
+    Computes 2P using the tangent-line formula:
+
+        λ = (3x₁² + a) · (2y₁)⁻¹  (mod p)
+        x₃ = λ² - 2x₁              (mod p)
+        y₃ = λ(x₁ - x₃) - y₁      (mod p)
+
+    Example (E: y² = x³ + x + 1 over F₂₃):
+
+        >>> curve = CurveParams(p=23, a=1, b=1, n=28, h=1, coord=CoordinateSystem.AFFINE)
+        >>> affine_double(0, 1, curve)
+        (6, 19)
+    """
     if px is None or py is None:
         return (None, None)
     p = curve.p
@@ -38,7 +64,23 @@ def affine_add(
     p2y: int | None,
     curve: CurveParams,
 ) -> tuple[int | None, int | None]:
-    """Add two points in affine coordinates."""
+    """Add two distinct points in affine coordinates.
+
+    Given P₁ = (x₁, y₁) and P₂ = (x₂, y₂) with P₁ ≠ P₂, the chord-line
+    formula is:
+
+        λ  = (y₂ - y₁) · (x₂ - x₁)⁻¹  (mod p)
+        x₃ = λ² - x₁ - x₂              (mod p)
+        y₃ = λ(x₁ - x₃) - y₁           (mod p)
+
+    If P₁ = P₂ the call is forwarded to :func:`affine_double`.
+
+    Example (E: y² = x³ + x + 1 over F₂₃, P(0,1) + Q(6,19)):
+
+        >>> curve = CurveParams(p=23, a=1, b=1, n=28, h=1, coord=CoordinateSystem.AFFINE)
+        >>> affine_add(0, 1, 6, 19, curve)
+        (3, 13)
+    """
     if p1x is None or p1y is None:
         return (p2x, p2y)
     if p2x is None or p2y is None:
@@ -61,7 +103,18 @@ def affine_add(
 def affine_mul(
     k: int, px: int | None, py: int | None, curve: CurveParams
 ) -> tuple[int | None, int | None]:
-    """Scalar multiplication in affine coordinates (double-and-add)."""
+    """Scalar multiplication in affine coordinates (double-and-add).
+
+    Computes k·P by scanning the bits of *k* from LSB to MSB,
+    accumulating the result and doubling the base at each step.
+    Runs in O(log k) doublings and at most O(log k) additions.
+
+    .. warning::
+
+       The double-and-add algorithm is **not** constant-time: the number
+       of additions depends on the Hamming weight of *k*.  For
+       constant-time requirements see RFC 6090, Section 4.
+    """
     if px is None or py is None or k == 0:
         return (None, None)
     rx: int | None = None

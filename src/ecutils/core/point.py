@@ -1,6 +1,15 @@
 # ecutils/core/point.py
 
-"""The Point class — public-facing representation of a point on an elliptic curve."""
+"""The Point class — public-facing representation of a point on an elliptic curve.
+
+A point on the short Weierstrass curve y² = x³ + ax + b (mod p) belongs
+to an abelian group with the following properties:
+
+- **Closure**: P + Q is also on the curve.
+- **Associativity**: (P + Q) + R = P + (Q + R).
+- **Identity**: There exists a special "point at infinity" O such that P + O = P.
+- **Inverse**: For every P = (x, y), the inverse is -P = (x, -y mod p), and P + (-P) = O.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +18,7 @@ from dataclasses import dataclass, field
 from ecutils.core.arithmetic.affine import affine_add, affine_mul
 from ecutils.core.arithmetic.jacobian import jac_add, jac_mul, to_affine, to_jacobian
 from ecutils.core.curve import CoordinateSystem, CurveParams
+from ecutils.utils.math import modular_sqrt
 
 
 @dataclass(frozen=True)
@@ -91,17 +101,72 @@ class Point:
     def _wrap(self, x: int | None, y: int | None) -> Point:
         return Point(x, y, self.curve, _trusted=True)
 
+    # ----- compression -----
+
+    def compress(self) -> tuple[int, int]:
+        """Compress this point to its x-coordinate and parity bit.
+
+        Returns:
+            A tuple ``(x, parity)`` where *parity* is ``y % 2``.
+
+        Raises:
+            ValueError: If this point is the identity (point at infinity).
+        """
+        if self.is_identity:
+            raise ValueError("Cannot compress the identity point (point at infinity).")
+        return (self.x, self.y % 2)  # type: ignore[operator]
+
+    @classmethod
+    def decompress(cls, x: int, parity: int, curve: CurveParams) -> Point:
+        """Reconstruct a point from its compressed form.
+
+        Args:
+            x:      The x-coordinate.
+            parity: The parity bit (0 or 1) indicating which y to select.
+            curve:  The curve parameters.
+
+        Returns:
+            The decompressed ``Point``.
+
+        Raises:
+            ValueError: If *x* does not correspond to a valid point on the curve.
+        """
+        rhs = (pow(x, 3, curve.p) + curve.a * x + curve.b) % curve.p
+        y = modular_sqrt(rhs, curve.p)
+        if y is None:
+            raise ValueError(
+                f"x={x} does not correspond to a valid point on the curve "
+                f"y² = x³ + {curve.a}x + {curve.b} (mod {curve.p})."
+            )
+        if y % 2 != parity:
+            y = curve.p - y
+        return cls(x, y, curve)
+
     # ----- operators -----
 
     def __neg__(self) -> Point:
-        """Return the additive inverse (negation) of this point."""
+        """Return the additive inverse: -P = (x, -y mod p)."""
         if self.is_identity:
             return self
         curve = self._require_curve()
         return Point(self.x, (-self.y) % curve.p, curve, _trusted=True)  # type: ignore[operator]
 
     def __add__(self, other: Point) -> Point:
-        """Add two points on the same curve."""
+        """Add two points on the same curve using the group law.
+
+        Delegates to affine or Jacobian arithmetic depending on
+        ``curve.coord``.  The chord-and-tangent formulas are:
+
+        Addition (P ≠ Q):
+            λ  = (y₂ - y₁) · (x₂ - x₁)⁻¹
+            x₃ = λ² - x₁ - x₂
+            y₃ = λ(x₁ - x₃) - y₁
+
+        Doubling (P = Q):
+            λ  = (3x₁² + a) · (2y₁)⁻¹
+            x₃ = λ² - 2x₁
+            y₃ = λ(x₁ - x₃) - y₁
+        """
         curve = self._require_curve()
         other = self._coerce(other)
 
@@ -118,7 +183,7 @@ class Point:
         return self.__add__(-other)
 
     def __mul__(self, k: int) -> Point:
-        """Scalar multiplication: Point * k."""
+        """Scalar multiplication: k · P via double-and-add in O(log k)."""
         curve = self._require_curve()
         k = k % curve.n
 

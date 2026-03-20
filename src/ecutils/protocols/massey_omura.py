@@ -43,6 +43,19 @@ from ecutils.curves.registry import get_curve
 class MasseyOmura:
     """Massey-Omura three-pass protocol.
 
+    Three-pass message exchange without shared keys:
+
+        C1 = e_A · M           (Alice encrypts)
+        C2 = e_B · C1          (Bob encrypts)
+        C3 = e_A⁻¹ · C2        (Alice removes her encryption)
+        M  = e_B⁻¹ · C3        (Bob recovers the message)
+
+    The protocol works because scalar multiplication on elliptic curves
+    is commutative: e_A · (e_B · M) = e_B · (e_A · M).
+
+    Requirement: gcd(private_key, n) = 1 so that the modular inverse
+    e⁻¹ mod n exists.
+
     Attributes:
         private_key: The private scalar (integer), must be coprime with n.
         curve_name:  Name of the curve (e.g. ``"secp521r1"``).

@@ -1,6 +1,23 @@
 # ecutils/core/arithmetic/jacobian.py
 
-"""Elliptic curve arithmetic in Jacobian (projective) coordinates."""
+"""Elliptic curve arithmetic in Jacobian (projective) coordinates.
+
+In Jacobian coordinates a point is represented as (X, Y, Z) where the
+affine equivalents are x = X/Z² and y = Y/Z³.  The identity (point at
+infinity) is represented by Z = 0 (or x=None, y=None in this
+implementation).
+
+The key advantage over affine arithmetic is that point addition and
+doubling can be performed **without** modular inversions (only
+multiplications and squarings), making scalar multiplication roughly
+3x faster for large scalars.
+
+Trade-off: each point uses three coordinates instead of two, and a
+single inversion is needed at the end to convert back to affine form.
+
+See RFC 6090, Section 4 for a detailed treatment of projective
+coordinate systems and their security considerations.
+"""
 
 from __future__ import annotations
 
@@ -48,7 +65,18 @@ def to_affine(jp: _JacobianPoint, curve: CurveParams) -> tuple[int | None, int |
 
 @lru_cache(maxsize=LRU_CACHE_MAXSIZE)
 def jac_double(jp: _JacobianPoint, curve: CurveParams) -> _JacobianPoint:
-    """Double a point in Jacobian coordinates."""
+    """Double a point in Jacobian coordinates.
+
+    Uses the standard Jacobian doubling formulas (see RFC 6090 Section 4):
+
+        S = 4·X·Y²
+        M = 3·X² + a·Z⁴
+        X' = M² - 2·S
+        Y' = M·(S - X') - 8·Y⁴
+        Z' = 2·Y·Z
+
+    Cost: 1S + 4M (no field inversions).
+    """
     if jp.x is None or jp.y is None or jp.y == 0:
         return _JacobianPoint()
     p = curve.p
@@ -66,7 +94,20 @@ def jac_double(jp: _JacobianPoint, curve: CurveParams) -> _JacobianPoint:
 def jac_add(
     jp1: _JacobianPoint, jp2: _JacobianPoint, curve: CurveParams
 ) -> _JacobianPoint:
-    """Add two points in Jacobian coordinates."""
+    """Add two points in Jacobian coordinates.
+
+    Uses the standard Jacobian addition formulas (see RFC 6090 Section 4):
+
+        U₁ = X₁·Z₂²,  U₂ = X₂·Z₁²
+        S₁ = Y₁·Z₂³,  S₂ = Y₂·Z₁³
+        H  = U₂ - U₁,  R = 2·(S₂ - S₁)
+        X' = R² - H³ - 2·U₁·H²
+        Y' = R·(U₁·H² - X') - 2·S₁·H³
+        Z' = ((Z₁ + Z₂)² - Z₁² - Z₂²)·H
+
+    If U₁ = U₂ and S₁ ≠ S₂ the points are inverses → identity.
+    If U₁ = U₂ and S₁ = S₂ the points are equal → delegates to :func:`jac_double`.
+    """
     if jp1.x is None or jp1.y is None:
         return jp2
     if jp2.x is None or jp2.y is None:
@@ -94,7 +135,12 @@ def jac_add(
 
 
 def jac_mul(k: int, jp: _JacobianPoint, curve: CurveParams) -> _JacobianPoint:
-    """Scalar multiplication in Jacobian coordinates (double-and-add)."""
+    """Scalar multiplication in Jacobian coordinates (double-and-add).
+
+    Computes k·P using the binary expansion of *k*.  Runs in O(log k)
+    doublings and at most O(log k) additions, all without field inversions
+    until the final conversion back to affine.
+    """
     if k == 0 or jp.x is None or jp.y is None:
         return _JacobianPoint()
     result = _JacobianPoint()
