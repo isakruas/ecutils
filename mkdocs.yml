@@ -15,7 +15,7 @@ repo_name: isakruas/ecutils
 repo_url: https://github.com/isakruas/ecutils
 
 # Copyright
-copyright: Copyright &copy; 2022-2024 <a href="https://lattes.cnpq.br/4397351570177069" target="_blank">Ruas, Isak Paulo de Andrade</a>; <a href="https://lattes.cnpq.br/0567547569121826" target="_blank">Paiva, Celimar Reijane Alves Damasceno</a>; <a href="https://lattes.cnpq.br/7059909954060830" target="_blank">Silva, Fernando Marcos Souza</a>.
+copyright: Copyright &copy; 2022-2026 <a href="https://lattes.cnpq.br/4397351570177069" target="_blank">Ruas, Isak Paulo de Andrade</a>; <a href="https://lattes.cnpq.br/0567547569121826" target="_blank">Paiva, Celimar Reijane Alves Damasceno</a>; <a href="https://lattes.cnpq.br/7059909954060830" target="_blank">Silva, Fernando Marcos Souza</a>.
 
 # Configuration
 theme:
@@ -42,6 +42,19 @@ theme:
   font:
     text: Roboto
     code: Roboto Mono
+
+# Extensions
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+# MathJax
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 # Plugins
 plugins:

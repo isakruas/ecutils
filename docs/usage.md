@@ -24,10 +24,10 @@ inf = Point(curve=curve)
     `CurveParams` automatically validates that the curve is non-singular
     (4a³ + 27b² ≠ 0 mod p). Attempting to create a singular curve raises `ValueError`:
 
-    ```python
-    # This raises ValueError: singular curve
-    CurveParams(p=23, a=0, b=0, n=1)
-    ```
+```python
+# This raises ValueError: singular curve
+CurveParams(p=23, a=0, b=0, n=1)
+```
 
 ### Arithmetic with Operators
 
