@@ -413,3 +413,43 @@ class TestEllipticCurveOperations(unittest.TestCase):
         result_add_neg = self.point1 + (-self.point2)
         self.assertEqual(result_sub.x, result_add_neg.x)
         self.assertEqual(result_sub.y, result_add_neg.y)
+
+    def test_affine_double_identity(self):
+        """Test affine_double with point at infinity returns identity."""
+        from ecutils.core.arithmetic.affine import affine_double
+
+        result = affine_double(None, None, self.affine_curve)
+        self.assertEqual(result, (None, None))
+
+    def test_affine_add_with_p2_identity(self):
+        """Test affine_add where p2 is point at infinity returns p1."""
+        from ecutils.core.arithmetic.affine import affine_add
+
+        result = affine_add(self.point1.x, self.point1.y, None, None, self.affine_curve)
+        self.assertEqual(result, (self.point1.x, self.point1.y))
+
+    def test_require_curve_raises_without_curve(self):
+        """Test that arithmetic on a Point without curve raises ValueError."""
+        p = Point(x=1, y=2)
+        with self.assertRaises(ValueError):
+            p + p
+
+    def test_coerce_borrows_curve(self):
+        """Test that _coerce assigns curve params to a point without them."""
+        p_with_curve = self.point1
+        p_without_curve = Point(x=self.point2.x, y=self.point2.y)
+        coerced = p_with_curve._coerce(p_without_curve)
+        self.assertEqual(coerced.curve, self.curve)
+        result = p_with_curve + p_without_curve
+        self.assertFalse(result.is_identity)
+
+    def test_negation_identity(self):
+        """Test negation of identity point returns identity."""
+        identity = Point(curve=self.curve)
+        result = -identity
+        self.assertTrue(result.is_identity)
+
+    def test_repr_identity(self):
+        """Test repr of identity point."""
+        identity = Point()
+        self.assertEqual(repr(identity), "Point(∞)")
