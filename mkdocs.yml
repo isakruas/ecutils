@@ -70,5 +70,6 @@ nav:
     - Curves: reference/curves.md
     - Utils: reference/utils.md
   - Advanced:
+    - Mathematical Background: math-background.md
     - Benchmarks: benchmarks.md
     - Security: security.md

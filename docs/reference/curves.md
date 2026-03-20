@@ -79,3 +79,4 @@ except KeyError as e:
 - For secure applications, use standardized and vetted curves.
 - All curves conform to SEC 2 / NIST standards.
 - `get_curve()` returns `CurveParams` with Jacobian coordinates by default. Use `dataclasses.replace(curve, coord=CoordinateSystem.AFFINE)` for affine coordinates.
+- `CurveParams` automatically validates the discriminant condition (4a³ + 27b² ≠ 0 mod p) at construction time, rejecting singular curves with `ValueError`.

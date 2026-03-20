@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v2.0.0] - 2026-?-?
+## [v2.0.0] - 2026-03-20
 
 ### Breaking Changes
 
@@ -74,6 +74,13 @@ This is a full API redesign. Code written for v1.x **will not work** without mig
 - Module structure diagram (`docs/assets/module_structure.svg`)
 - `tests/test_group_properties.py` — group law tests (associativity, commutativity, distributivity, identity, inverse, Jacobian/Affine consistency)
 - `.github/workflows/tests.yml` — test-only CI workflow for all PR branches
+- Curve validation: `CurveParams.__post_init__` checks discriminant 4a³ + 27b² ≠ 0 (mod p); singular curves raise `ValueError`
+- Point compression: `Point.compress()` returns (x, parity); `Point.decompress(x, parity, curve)` reconstructs the point
+- Math utilities: `is_quadratic_residue(a, p)` (Euler criterion) and `modular_sqrt(a, p)` (Tonelli-Shanks) in `ecutils.utils.math`
+- Sign/verify with hashing: `DigitalSignature.sign_message(bytes)` and `verify_message(pub, bytes, r, s)` with integrated SHA-256
+- Comprehensive docstrings with formulas (addition, doubling, Jacobian), worked examples (E/F₂₃), security notes (nonce reuse, RFC 6090), algorithm descriptions (ECDSA, Koblitz, ECDH, Massey-Omura)
+- Mathematical background documentation page (`docs/math-background.md`)
+- New test suites: `test_curve_validation.py`, `test_math_utils.py`, `test_point_compression.py`, `test_educational_examples.py`
 
 ### Changed
 - Refactored from monolithic modules to subpackage architecture:
@@ -82,9 +89,10 @@ This is a full API redesign. Code written for v1.x **will not work** without mig
   - `protocols.py` → `protocols/diffie_hellman.py`, `protocols/massey_omura.py`
   - `curves.py` → `curves/registry.py`
   - `settings.py` → `utils/settings.py`
-- All documentation updated to reflect v2.0 API
+- All documentation updated to reflect v2.0 API and new features (usage, security, configuration, reference, index)
 - All tests rewritten for the new API
 - Minimum Python version raised to 3.9
+- `ecutils.utils.__init__` and `ecutils.__init__` now export `is_quadratic_residue` and `modular_sqrt`
 
 ### Removed
 - `EllipticCurve` class (replaced by `CurveParams` + `Point` operators)

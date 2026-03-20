@@ -5,20 +5,17 @@ Welcome to the documentation for ECUtils, a pure Python library for elliptic cur
 ## Quick Start
 
 ```python
-import hashlib
 from ecutils import DigitalSignature
 
 # Generate a signature instance with a private key
 private_key = 123456789
 ds = DigitalSignature(private_key, curve_name="secp256k1")
 
-# Sign a message
-message = b"Hello, ECUtils!"
-message_hash = int.from_bytes(hashlib.sha256(message).digest(), "big")
-r, s = ds.sign(message_hash)
+# Sign a message (SHA-256 hashing is done automatically)
+r, s = ds.sign_message(b"Hello, ECUtils!")
 
 # Verify the signature
-is_valid = ds.verify(ds.public_key, message_hash, r, s)
+is_valid = ds.verify_message(ds.public_key, b"Hello, ECUtils!", r, s)
 print(f"Valid: {is_valid}")  # Output: Valid: True
 ```
 
@@ -40,10 +37,11 @@ print(f"Valid: {is_valid}")  # Output: Valid: True
 - **[Algorithms](reference/algorithms.md):** `DigitalSignature` (ECDSA) and `Koblitz` encoding.
 - **[Protocols](reference/protocols.md):** `DiffieHellman` (ECDH) and `MasseyOmura` key exchange.
 - **[Curves](reference/curves.md):** Pre-defined curve parameters and registry functions.
-- **[Utils](reference/utils.md):** Configuration settings.
+- **[Utils](reference/utils.md):** Configuration settings and math utilities.
 
 ### Advanced Topics
 
+- **[Mathematical Background](math-background.md):** Elliptic curve theory, formulas, and educational examples.
 - **[Benchmarks](benchmarks.md):** Performance data across configurations and curves.
 - **[Security Considerations](security.md):** Best practices for secure implementations.
 
@@ -52,9 +50,12 @@ print(f"Valid: {is_valid}")  # Output: Valid: True
 | Feature | Description |
 |---------|-------------|
 | **Core Operations** | Point addition, subtraction, negation, scalar multiplication via operators (`+`, `-`, `*`) |
-| **Digital Signatures** | ECDSA sign and verify |
+| **Point Compression** | Compress points to (x, parity) and decompress back |
+| **Curve Validation** | Automatic discriminant check (4a³ + 27b² ≠ 0) rejects singular curves |
+| **Digital Signatures** | ECDSA sign/verify with optional integrated SHA-256 hashing (`sign_message`/`verify_message`) |
 | **Key Exchange** | Diffie-Hellman (ECDH), Massey-Omura |
 | **Message Encoding** | Koblitz method |
+| **Math Utilities** | Quadratic residue testing (Euler criterion) and modular square root (Tonelli-Shanks) |
 | **Supported Curves** | secp192k1/r1, secp224k1/r1, secp256k1/r1, secp384r1, secp521r1 |
 | **Performance** | LRU caching, Jacobian coordinates |
 
