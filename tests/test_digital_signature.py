@@ -51,3 +51,39 @@ class TestDigitalSignature(unittest.TestCase):
         r, s = self.ds.sign_message(msg)
         # Verify using the low-level verify with the same hash
         self.assertTrue(self.ds.verify(self.ds.public_key, msg_hash, r, s))
+
+    def test_sign_message_custom_hash_sha512(self):
+        """sign_message with hashlib.sha512 should roundtrip."""
+        import hashlib
+
+        msg = b"SHA-512 test"
+        r, s = self.ds.sign_message(msg, hash_func=hashlib.sha512)
+        self.assertTrue(
+            self.ds.verify_message(
+                self.ds.public_key, msg, r, s, hash_func=hashlib.sha512
+            )
+        )
+
+    def test_sign_message_custom_hash_sha384(self):
+        """sign_message with hashlib.sha384 should roundtrip."""
+        import hashlib
+
+        msg = b"SHA-384 test"
+        r, s = self.ds.sign_message(msg, hash_func=hashlib.sha384)
+        self.assertTrue(
+            self.ds.verify_message(
+                self.ds.public_key, msg, r, s, hash_func=hashlib.sha384
+            )
+        )
+
+    def test_verify_message_wrong_hash_func(self):
+        """Verifying with a different hash function should fail."""
+        import hashlib
+
+        msg = b"Hash mismatch"
+        r, s = self.ds.sign_message(msg, hash_func=hashlib.sha256)
+        self.assertFalse(
+            self.ds.verify_message(
+                self.ds.public_key, msg, r, s, hash_func=hashlib.sha512
+            )
+        )

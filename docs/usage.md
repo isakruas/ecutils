@@ -241,6 +241,37 @@ is_wrong = ds.verify_message(ds.public_key, b"Tampered message", r, s)
 print(f"Valid: {is_wrong}")  # Valid: False
 ```
 
+### Choosing a Hash Function
+
+By default, `sign_message` and `verify_message` use SHA-256. You can pass
+any `hashlib` constructor via the `hash_func` parameter:
+
+```python
+import hashlib
+from ecutils import DigitalSignature
+
+private_key = 123456789
+ds = DigitalSignature(private_key, curve_name="secp256k1")
+message = b"Secure communication"
+
+# Sign with SHA-512
+r, s = ds.sign_message(message, hash_func=hashlib.sha512)
+print(f"r = {r}")
+print(f"s = {s}")
+
+# Verify — must use the same hash function
+is_valid = ds.verify_message(ds.public_key, message, r, s, hash_func=hashlib.sha512)
+print(f"Valid: {is_valid}")  # Valid: True
+
+# Wrong hash function → invalid
+is_wrong = ds.verify_message(ds.public_key, message, r, s, hash_func=hashlib.sha256)
+print(f"Valid: {is_wrong}")  # Valid: False
+```
+
+Other supported hash functions include `hashlib.sha384`, `hashlib.sha3_256`,
+`hashlib.sha3_512`, and any callable that accepts `bytes` and returns an
+object with a `.hexdigest()` method.
+
 ### Advanced: Bring Your Own Hash
 
 For full control over the hash function:

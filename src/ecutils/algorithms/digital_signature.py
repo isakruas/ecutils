@@ -19,6 +19,11 @@ from __future__ import annotations
 import hashlib
 import secrets
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Any
 
 from ecutils.core.point import Point
 from ecutils.curves.registry import get_curve, get_generator
@@ -117,29 +122,47 @@ class DigitalSignature:
 
     # ----- convenience wrappers -----
 
-    def sign_message(self, message: bytes) -> tuple[int, int]:
-        """Hash a message with SHA-256 and sign it.
+    def sign_message(
+        self,
+        message: bytes,
+        hash_func: Callable[[bytes], Any] = hashlib.sha256,
+    ) -> tuple[int, int]:
+        """Hash a message and sign it.
 
         Args:
-            message: The raw message bytes to sign.
+            message:   The raw message bytes to sign.
+            hash_func: Hash constructor (default ``hashlib.sha256``).
+                       Any callable that accepts ``bytes`` and returns an
+                       object with a ``.hexdigest()`` method (e.g.
+                       ``hashlib.sha384``, ``hashlib.sha512``,
+                       ``hashlib.sha3_256``).
 
         Returns:
             A tuple ``(r, s)`` representing the ECDSA signature.
         """
-        message_hash = int(hashlib.sha256(message).hexdigest(), 16)
+        message_hash = int(hash_func(message).hexdigest(), 16)
         return self.sign(message_hash)
 
-    def verify_message(self, public_key: Point, message: bytes, r: int, s: int) -> bool:
-        """Hash a message with SHA-256 and verify its ECDSA signature.
+    def verify_message(
+        self,
+        public_key: Point,
+        message: bytes,
+        r: int,
+        s: int,
+        hash_func: Callable[[bytes], Any] = hashlib.sha256,
+    ) -> tuple[int, int] | bool:
+        """Hash a message and verify its ECDSA signature.
 
         Args:
             public_key: The signer's public key point.
             message:    The raw message bytes.
             r:          First component of the signature.
             s:          Second component of the signature.
+            hash_func:  Hash constructor (default ``hashlib.sha256``).
+                        Must match the one used in ``sign_message``.
 
         Returns:
             ``True`` if the signature is valid, ``False`` otherwise.
         """
-        message_hash = int(hashlib.sha256(message).hexdigest(), 16)
+        message_hash = int(hash_func(message).hexdigest(), 16)
         return self.verify(public_key, message_hash, r, s)

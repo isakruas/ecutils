@@ -80,6 +80,8 @@ This is a full API redesign. Code written for v1.x **will not work** without mig
 - Migration guides documentation with side-by-side examples for migrating from `ecdsa` and `cryptography` libraries
 - Math utilities: `is_quadratic_residue(a, p)` (Euler criterion) and `modular_sqrt(a, p)` (Tonelli-Shanks) in `ecutils.utils.math`
 - Sign/verify with hashing: `DigitalSignature.sign_message(bytes)` and `verify_message(pub, bytes, r, s)` with integrated SHA-256
+- Customizable hash function: `sign_message` and `verify_message` accept a `hash_func` parameter (default `hashlib.sha256`, supports `sha384`, `sha512`, `sha3_256`, etc.)
+- Cross-verification examples in migration guides showing signature interoperability between ecutils, `ecdsa`, and `cryptography` via DER encoding
 - Comprehensive docstrings with formulas (addition, doubling, Jacobian), worked examples (E/F₂₃), security notes (nonce reuse, RFC 6090), algorithm descriptions (ECDSA, Koblitz, ECDH, Massey-Omura)
 - Mathematical background documentation page (`docs/math-background.md`)
 - New test suites: `test_curve_validation.py`, `test_math_utils.py`, `test_point_compression.py`, `test_educational_examples.py`
