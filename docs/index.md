@@ -39,6 +39,10 @@ print(f"Valid: {is_valid}")  # Output: Valid: True
 - **[Curves](reference/curves.md):** Pre-defined curve parameters and registry functions.
 - **[Utils](reference/utils.md):** Configuration settings and math utilities.
 
+### Migration Guides
+
+- **[From ecdsa / cryptography](migration-guides.md):** Side-by-side comparisons, key import/export, and cross-library ECDH examples.
+
 ### Advanced Topics
 
 - **[Mathematical Background](math-background.md):** Elliptic curve theory, formulas, and educational examples.
@@ -50,7 +54,7 @@ print(f"Valid: {is_valid}")  # Output: Valid: True
 | Feature | Description |
 |---------|-------------|
 | **Core Operations** | Point addition, subtraction, negation, scalar multiplication via operators (`+`, `-`, `*`) |
-| **Point Compression** | Compress points to (x, parity) and decompress back |
+| **Point Compression** | Compress/decompress via (x, parity) tuples or SEC 1 / X9.62 bytes (interoperable with `ecdsa`, `cryptography`) |
 | **Curve Validation** | Automatic discriminant check (4a³ + 27b² ≠ 0) rejects singular curves |
 | **Digital Signatures** | ECDSA sign/verify with optional integrated SHA-256 hashing (`sign_message`/`verify_message`) |
 | **Key Exchange** | Diffie-Hellman (ECDH), Massey-Omura |

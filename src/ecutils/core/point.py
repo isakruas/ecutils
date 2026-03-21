@@ -142,6 +142,96 @@ class Point:
             y = curve.p - y
         return cls(x, y, curve)
 
+    # ----- SEC 1 compression (interoperable) -----
+
+    def compress_sec1(self) -> bytes:
+        """Compress this point to SEC 1 / X9.62 format.
+
+        The output is a single byte prefix (``0x02`` for even y, ``0x03``
+        for odd y) followed by the x-coordinate as a big-endian unsigned
+        integer, zero-padded to the field size.
+
+        Returns:
+            Compressed point as bytes.
+
+        Raises:
+            ValueError: If this point is the identity or has no curve params.
+        """
+        if self.is_identity:
+            raise ValueError("Cannot compress the identity point (point at infinity).")
+        curve = self._require_curve()
+        byte_len = (curve.p.bit_length() + 7) // 8
+        prefix = b"\x03" if self.y % 2 else b"\x02"  # type: ignore[operator]
+        return prefix + self.x.to_bytes(byte_len, "big")  # type: ignore[union-attr]
+
+    def to_uncompressed_sec1(self) -> bytes:
+        """Serialize this point to SEC 1 / X9.62 uncompressed format.
+
+        The output is ``0x04 || x || y``, where x and y are big-endian
+        unsigned integers zero-padded to the field size.
+
+        Returns:
+            Uncompressed point as bytes.
+
+        Raises:
+            ValueError: If this point is the identity or has no curve params.
+        """
+        if self.is_identity:
+            raise ValueError("Cannot serialize the identity point (point at infinity).")
+        curve = self._require_curve()
+        byte_len = (curve.p.bit_length() + 7) // 8
+        return (
+            b"\x04"
+            + self.x.to_bytes(byte_len, "big")  # type: ignore[union-attr]
+            + self.y.to_bytes(byte_len, "big")  # type: ignore[union-attr]
+        )
+
+    @classmethod
+    def from_sec1(cls, data: bytes, curve: CurveParams) -> Point:
+        """Deserialize a point from SEC 1 / X9.62 format.
+
+        Supports both compressed (``0x02``/``0x03`` prefix) and
+        uncompressed (``0x04`` prefix) encodings.
+
+        Args:
+            data:  The SEC 1 encoded point bytes.
+            curve: The curve parameters.
+
+        Returns:
+            The deserialized ``Point``.
+
+        Raises:
+            ValueError: If the data is malformed or the point is invalid.
+        """
+        if len(data) < 2:
+            raise ValueError("SEC 1 data too short.")
+        byte_len = (curve.p.bit_length() + 7) // 8
+        prefix = data[0]
+
+        if prefix in (0x02, 0x03):
+            if len(data) != 1 + byte_len:
+                raise ValueError(
+                    f"Compressed SEC 1 data must be {1 + byte_len} bytes, "
+                    f"got {len(data)}."
+                )
+            x = int.from_bytes(data[1:], "big")
+            parity = prefix - 0x02  # 0 for even, 1 for odd
+            return cls.decompress(x, parity, curve)
+
+        if prefix == 0x04:
+            if len(data) != 1 + 2 * byte_len:
+                raise ValueError(
+                    f"Uncompressed SEC 1 data must be {1 + 2 * byte_len} bytes, "
+                    f"got {len(data)}."
+                )
+            x = int.from_bytes(data[1 : 1 + byte_len], "big")
+            y = int.from_bytes(data[1 + byte_len :], "big")
+            return cls(x, y, curve)
+
+        raise ValueError(
+            f"Unknown SEC 1 prefix: 0x{prefix:02x}. Expected 0x02, 0x03, or 0x04."
+        )
+
     # ----- operators -----
 
     def __neg__(self) -> Point:

@@ -76,6 +76,8 @@ This is a full API redesign. Code written for v1.x **will not work** without mig
 - `.github/workflows/tests.yml` — test-only CI workflow for all PR branches
 - Curve validation: `CurveParams.__post_init__` checks discriminant 4a³ + 27b² ≠ 0 (mod p); singular curves raise `ValueError`
 - Point compression: `Point.compress()` returns (x, parity); `Point.decompress(x, parity, curve)` reconstructs the point
+- SEC 1 interoperable compression: `Point.compress_sec1()`, `Point.to_uncompressed_sec1()`, and `Point.from_sec1()` for standard SEC 1 / X9.62 byte encoding compatible with `ecdsa`, `cryptography`, and OpenSSL
+- Migration guides documentation with side-by-side examples for migrating from `ecdsa` and `cryptography` libraries
 - Math utilities: `is_quadratic_residue(a, p)` (Euler criterion) and `modular_sqrt(a, p)` (Tonelli-Shanks) in `ecutils.utils.math`
 - Sign/verify with hashing: `DigitalSignature.sign_message(bytes)` and `verify_message(pub, bytes, r, s)` with integrated SHA-256
 - Comprehensive docstrings with formulas (addition, doubling, Jacobian), worked examples (E/F₂₃), security notes (nonce reuse, RFC 6090), algorithm descriptions (ECDSA, Koblitz, ECDH, Massey-Omura)

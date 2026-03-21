@@ -50,6 +50,8 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
 
 # MathJax
 extra_javascript:
@@ -82,6 +84,8 @@ nav:
     - Protocols: reference/protocols.md
     - Curves: reference/curves.md
     - Utils: reference/utils.md
+  - Migration Guides:
+    - From ecdsa / cryptography: migration-guides.md
   - Advanced:
     - Mathematical Background: math-background.md
     - Benchmarks: benchmarks.md
