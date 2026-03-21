@@ -162,6 +162,76 @@ vk = VerifyingKey.from_string(sec1_bytes, curve=SECP256k1)
 print(vk.to_string("compressed").hex())
 ```
 
+### Cross-Verification: Sign with ecutils, Verify with `ecdsa`
+
+The ultimate interoperability test — sign a message with ECUtils and
+verify the signature using `ecdsa`, passing through DER encoding:
+
+```python
+import hashlib
+from ecdsa import SECP256k1, SigningKey, BadSignatureError
+from ecdsa.util import sigencode_der, sigdecode_der
+from ecutils import DigitalSignature, get_curve
+
+# --- Generate key with ecdsa ---
+sk = SigningKey.generate(curve=SECP256k1)
+vk = sk.get_verifying_key()
+private_key = int(sk.to_string().hex(), 16)
+
+# --- Sign with ecutils ---
+curve = get_curve("secp256k1")
+ds = DigitalSignature(private_key, curve_name="secp256k1")
+message = b"Hello, world!"
+
+r, s = ds.sign_message(message)
+
+# Convert (r, s) to DER using ecdsa's utility
+der_signature = sigencode_der(r, s, order=curve.n)
+print(f"DER: {der_signature.hex()}")
+
+# --- Verify with ecdsa ---
+try:
+    vk.verify(der_signature, message, hashfunc=hashlib.sha256, sigdecode=sigdecode_der)
+    print("ecdsa verified the ecutils signature: VALID")
+except BadSignatureError:
+    print("INVALID")
+```
+
+### Cross-Verification: Sign with `ecdsa`, Verify with ecutils
+
+The reverse — sign with `ecdsa` and verify with ECUtils:
+
+```python
+import hashlib
+from ecdsa import SECP256k1, SigningKey
+from ecdsa.util import sigencode_string
+from ecutils import DigitalSignature, Point, get_curve
+
+# --- Generate key with ecdsa ---
+sk = SigningKey.generate(curve=SECP256k1)
+vk = sk.get_verifying_key()
+private_key = int(sk.to_string().hex(), 16)
+message = b"Hello, world!"
+
+# --- Sign with ecdsa (raw r||s format) ---
+signature = sk.sign(message, hashfunc=hashlib.sha256, sigencode=sigencode_string)
+
+# Extract r and s from raw bytes (each is 32 bytes for secp256k1)
+byte_len = 32
+r = int.from_bytes(signature[:byte_len], "big")
+s = int.from_bytes(signature[byte_len:], "big")
+
+# --- Verify with ecutils ---
+curve = get_curve("secp256k1")
+vk_bytes = vk.to_string("compressed")
+pub = Point.from_sec1(vk_bytes, curve)
+
+ds = DigitalSignature(private_key, curve_name="secp256k1")
+is_valid = ds.verify_message(pub, message, r, s)
+
+print(f"ecutils verified the ecdsa signature: {'VALID' if is_valid else 'INVALID'}")
+```
+
 ### Curve Name Mapping
 
 | ecdsa | ecutils |
@@ -384,6 +454,87 @@ bob_shared_bytes = bob_shared.x.to_bytes(32, "big")
 assert alice_shared == bob_shared_bytes
 
 print("Shared secrets match!")
+```
+
+### Cross-Verification: Sign with ecutils, Verify with `cryptography`
+
+Sign a message with ECUtils and verify using `cryptography` via DER encoding:
+
+```python
+import secrets
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec, utils
+from cryptography.hazmat.primitives.serialization import (
+    Encoding, PublicFormat,
+)
+from cryptography.exceptions import InvalidSignature
+from ecutils import DigitalSignature, Point, get_curve, get_generator
+
+# --- Generate key in ecutils ---
+curve = get_curve("secp256k1")
+G = get_generator("secp256k1")
+private_key = secrets.randbelow(curve.n - 1) + 1
+pub = private_key * G
+
+# --- Sign with ecutils ---
+ds = DigitalSignature(private_key, curve_name="secp256k1")
+message = b"Hello, world!"
+r, s = ds.sign_message(message)
+
+# Convert (r, s) to DER
+der_signature = utils.encode_dss_signature(r, s)
+print(f"DER: {der_signature.hex()}")
+
+# --- Verify with cryptography ---
+sec1_bytes = pub.compress_sec1()
+crypto_pub = ec.EllipticCurvePublicKey.from_encoded_point(
+    ec.SECP256K1(), sec1_bytes
+)
+
+try:
+    crypto_pub.verify(der_signature, message, ec.ECDSA(hashes.SHA256()))
+    print("cryptography verified the ecutils signature: VALID")
+except InvalidSignature:
+    print("INVALID")
+```
+
+### Cross-Verification: Sign with `cryptography`, Verify with ecutils
+
+The reverse — sign with `cryptography` and verify with ECUtils:
+
+```python
+import secrets
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec, utils
+from cryptography.hazmat.primitives.serialization import (
+    Encoding, PublicFormat,
+)
+from ecutils import DigitalSignature, Point, get_curve
+
+# --- Generate key in cryptography ---
+crypto_sk = ec.generate_private_key(ec.SECP256K1())
+crypto_pub = crypto_sk.public_key()
+message = b"Hello, world!"
+
+# --- Sign with cryptography ---
+der_signature = crypto_sk.sign(message, ec.ECDSA(hashes.SHA256()))
+
+# Extract r, s from DER
+r, s = utils.decode_dss_signature(der_signature)
+
+# --- Verify with ecutils ---
+pub_bytes = crypto_pub.public_bytes(
+    Encoding.X962, PublicFormat.CompressedPoint
+)
+curve = get_curve("secp256k1")
+pub = Point.from_sec1(pub_bytes, curve)
+
+# Get private key number for DigitalSignature
+private_numbers = crypto_sk.private_numbers()
+ds = DigitalSignature(private_numbers.private_value, curve_name="secp256k1")
+
+is_valid = ds.verify_message(pub, message, r, s)
+print(f"ecutils verified the cryptography signature: {'VALID' if is_valid else 'INVALID'}")
 ```
 
 ### Curve Name Mapping
