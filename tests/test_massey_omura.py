@@ -1,15 +1,11 @@
 import unittest
 
-from ecutils import settings
-from ecutils.protocols import MasseyOmura
+from ecutils.curves.registry import get_generator
+from ecutils.protocols.massey_omura import MasseyOmura
 
 
 class TestMasseyOmura(unittest.TestCase):
     """Test cases for the Massey-Omura encryption exchange."""
-
-    def setUp(self):
-        """Set up test cases environment."""
-        settings.LRU_CACHE_MAXSIZE = 0
 
     def test_encryption_decryption(self):
         """Validate the complete encryption and decryption process."""
@@ -19,51 +15,45 @@ class TestMasseyOmura(unittest.TestCase):
         private_key_receiver = 654321
         mo_receiver = MasseyOmura(private_key_receiver)
 
-        message = (
-            mo_sender.curve.G
-        )  # Let's use the curve's generator point for simplicity
+        # Use the curve's generator point as the message
+        message = get_generator(mo_sender.curve_name)
 
         # Sender encrypts the message
-        encrypted_by_sender = mo_sender.first_encryption_step(message)
+        encrypted_by_sender = mo_sender.encrypt(message)
 
         # Receiver encrypts the already encrypted message
-        encrypted_by_receiver = mo_receiver.second_encryption_step(encrypted_by_sender)
+        encrypted_by_receiver = mo_receiver.encrypt(encrypted_by_sender)
 
         # Sender decrypts the message partly
-        partially_decrypted_by_sender = mo_sender.partial_decryption_step(
-            encrypted_by_receiver
-        )
+        partially_decrypted_by_sender = mo_sender.decrypt(encrypted_by_receiver)
 
         # Receiver completes decryption
-        fully_decrypted_message = mo_receiver.partial_decryption_step(
-            partially_decrypted_by_sender
-        )
+        fully_decrypted_message = mo_receiver.decrypt(partially_decrypted_by_sender)
 
         # The fully decrypted message should match the original message
         self.assertEqual(
-            message,
-            fully_decrypted_message,
+            message.x,
+            fully_decrypted_message.x,
+            "Decrypted message should match the original one.",
+        )
+        self.assertEqual(
+            message.y,
+            fully_decrypted_message.y,
             "Decrypted message should match the original one.",
         )
 
     def test_point_multiplication(self):
         """Validate the point multiplication with the private key."""
-        private_key = 123456  # Define a test private key.
-        mo = MasseyOmura(private_key)  # Initialize MasseyOmura instance.
+        private_key = 123456
+        mo = MasseyOmura(private_key)
+
+        G = get_generator(mo.curve_name)
 
         # Perform point multiplication using private key and generator point.
-        public_key = mo.public_key
-        expected_point = mo.curve.multiply_point(private_key, mo.curve.G)
+        expected_point = private_key * G
 
         # Check if the resulting point is on the curve.
         self.assertTrue(
-            mo.curve.is_point_on_curve(expected_point),
-            "The calculated public key should lie on the curve.",
-        )
-
-        # Validate that the public_key computed using `multiply_point` matches what we derived directly.
-        self.assertEqual(
-            public_key,
-            expected_point,
-            "The public key calculated does not match the expected point from multiplication.",
+            expected_point.is_on_curve(),
+            "The calculated point should lie on the curve.",
         )

@@ -13,12 +13,12 @@ This page presents performance benchmarks for ECUtils across different configura
 ECUtils supports two main performance optimization options:
 
 1. **Coordinate System:**
-   - **Jacobian (Projective):** Uses projective coordinates to avoid expensive modular inversions during intermediate calculations. This is the default and recommended setting.
-   - **Affine:** Traditional coordinate system with modular inversion at each step.
+   - **Jacobian** (default): Uses projective coordinates to avoid expensive modular inversions during intermediate calculations.
+   - **Affine**: Traditional coordinate system with modular inversion at each step.
 
 2. **LRU Cache:**
-   - **Enabled (default):** Caches results of point operations, dramatically improving performance for repeated operations.
-   - **Disabled:** No caching, useful for memory-constrained environments.
+   - **Enabled** (default): Caches results of point operations, dramatically improving performance for repeated operations.
+   - **Disabled**: No caching, useful for memory-constrained environments.
 
 ## Benchmark Results
 
@@ -36,8 +36,6 @@ This is the default and fastest configuration for most use cases.
 | secp256r1 | 3.65 | 2.29 | 0.02 | 0.03 | 0.02 | 0.04 | 0.02 | 0.02 |
 | secp384r1 | 3.51 | 2.28 | 0.05 | 0.06 | 0.05 | 0.09 | 0.05 | 0.05 |
 | secp521r1 | 4.04 | 2.52 | 0.09 | 0.20 | 0.09 | 0.18 | 0.09 | 0.09 |
-
-**Note:** N/A indicates that Koblitz encoding is not supported for curves with cofactor != 1.
 
 ### Jacobian Coordinates without LRU Cache
 
@@ -111,18 +109,8 @@ As expected, larger curves require more computation:
 
 1. **For most applications:** Use the default settings (Jacobian coordinates with LRU cache enabled).
 
-2. **For memory-constrained environments:** Consider disabling LRU cache, but expect significant performance degradation.
+2. **For memory-constrained environments:** Consider reducing cache size, but expect performance degradation.
 
 3. **For high-throughput applications:** The LRU cache is essential for achieving optimal performance.
 
 4. **For security-critical applications:** secp256r1 or secp384r1 offer a good balance of security and performance.
-
-## Running Your Own Benchmarks
-
-You can run the benchmarks yourself using the included benchmark script:
-
-```bash
-python benchmarks.py
-```
-
-This will generate performance data for your specific hardware and Python environment.

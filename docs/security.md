@@ -1,6 +1,6 @@
 # Security Considerations
 
-This document outlines important security considerations when using ECUtils for cryptographic applications. While ECUtils provides robust implementations of elliptic curve algorithms, proper usage is essential for maintaining security.
+This document outlines important security considerations when using ECUtils for cryptographic applications.
 
 ## Intended Use
 
@@ -11,6 +11,30 @@ ECUtils is designed for:
 - **Research:** Experimenting with ECC algorithms and protocols
 
 For production systems with high-security requirements, consider using battle-tested libraries like `cryptography` or hardware security modules (HSMs).
+
+## Curve Validation
+
+ECUtils automatically validates curves at construction time by checking the discriminant condition:
+
+$$
+\Delta = -16(4a^3 + 27b^2) \neq 0 \pmod{p}
+$$
+
+A zero discriminant means the curve is **singular** (has a cusp or node), which is cryptographically broken. Attempting to create a singular curve raises `ValueError`:
+
+```python
+from ecutils import CurveParams
+
+# This raises ValueError — singular curve
+CurveParams(p=23, a=0, b=0, n=1)
+```
+
+All curves in the built-in registry pass this validation.
+
+!!! note "Order Considerations"
+    For cryptographic security the group order *n* should be at least 2^160
+    (NIST SP 800-57). ECUtils does not enforce a minimum order so that
+    small "toy" curves can be used for educational purposes.
 
 ## Key Generation
 
@@ -45,13 +69,24 @@ For new applications, **secp256r1** or higher is recommended.
 
 ### Message Hashing
 
-Always hash messages before signing. The hash function should match the security level of the curve:
+Always hash messages before signing. The `sign_message()` and `verify_message()` convenience methods handle SHA-256 hashing automatically:
+
+```python
+from ecutils import DigitalSignature
+
+ds = DigitalSignature(private_key=123456, curve_name="secp256k1")
+
+# Automatic SHA-256 hashing
+r, s = ds.sign_message(b"Your message here")
+ds.verify_message(ds.public_key, b"Your message here", r, s)
+```
+
+For manual hashing, match the hash function to the curve's security level:
 
 ```python
 import hashlib
 
 # For secp256r1, use SHA-256
-message = b"Your message here"
 message_hash = int.from_bytes(hashlib.sha256(message).digest(), "big")
 
 # For secp384r1, use SHA-384
@@ -61,7 +96,7 @@ message_hash = int.from_bytes(hashlib.sha384(message).digest(), "big")
 message_hash = int.from_bytes(hashlib.sha512(message).digest(), "big")
 ```
 
-### Nonce Generation
+### Nonce Security (Critical)
 
 ECUtils generates random nonces internally for signature generation. The security of ECDSA critically depends on:
 
@@ -69,14 +104,19 @@ ECUtils generates random nonces internally for signature generation. The securit
 2. **Unpredictable nonces:** Nonces must be cryptographically random
 3. **Secret nonces:** Nonces must never be disclosed
 
-Reusing a nonce with the same private key allows an attacker to recover the private key.
+!!! danger "Nonce Reuse Vulnerability"
+    Reusing a nonce *k* with the same private key allows an attacker to
+    recover the private key algebraically. This was famously exploited in
+    the **2010 Sony PS3 attack**, where a static nonce in the ECDSA
+    implementation allowed extraction of the private signing key,
+    compromising the entire platform's code-signing infrastructure.
 
 ### Signature Verification
 
 Always verify signatures before trusting signed data:
 
 ```python
-is_valid = ds.verify_signature(public_key, message_hash, r, s)
+is_valid = ds.verify(public_key, message_hash, r, s)
 if not is_valid:
     raise SecurityError("Invalid signature")
 ```
@@ -89,27 +129,59 @@ The shared secret from ECDH should never be used directly as an encryption key. 
 
 ```python
 import hashlib
+from ecutils import DiffieHellman
+
+dh = DiffieHellman(private_key=0xA1, curve_name="secp256k1")
 
 # Compute shared secret
 shared_point = dh.compute_shared_secret(other_public_key)
 
 # Derive encryption key using HKDF or similar
-shared_bytes = shared_point.x.to_bytes(32, 'big')
+shared_bytes = shared_point.x.to_bytes(32, "big")
 encryption_key = hashlib.sha256(shared_bytes).digest()
 ```
 
+The security of ECDH is based on the **Elliptic Curve Discrete Logarithm Problem (ECDLP)**: given G and Q = d·G, it is computationally infeasible to recover the private scalar *d*.
+
 ### Public Key Validation
 
-Always validate received public keys to prevent invalid curve attacks:
+Points are automatically validated on construction when curve parameters are provided:
 
 ```python
-from ecutils.curves import get
+from ecutils import Point, get_curve
 
-curve = get("secp256r1")
+curve = get_curve("secp256r1")
 
-# Validate that the point is on the curve
-if not curve.is_point_on_curve(received_public_key):
-    raise SecurityError("Invalid public key")
+# This will raise ValueError if the point is not on the curve
+try:
+    p = Point(x=1, y=2, curve=curve)
+except ValueError:
+    print("Invalid point — not on the curve")
+```
+
+You can also check explicitly:
+
+```python
+point.is_on_curve()  # Returns True/False
+```
+
+## Point Compression Security
+
+Point compression reduces storage from two coordinates to one (x + parity bit).
+When decompressing, ECUtils computes the modular square root and validates the
+result. An invalid x-coordinate (one that does not yield a quadratic residue)
+is rejected with `ValueError`.
+
+```python
+from ecutils import Point, get_curve
+
+curve = get_curve("secp256k1")
+
+# Safe decompression with validation
+try:
+    P = Point.decompress(x=12345, parity=0, curve=curve)
+except ValueError:
+    print("Invalid compressed point")
 ```
 
 ## Koblitz Encoding
@@ -124,7 +196,12 @@ Koblitz encoding is intended for message embedding, not encryption. For secure c
 
 ### Timing Attacks
 
-ECUtils uses Python's built-in `pow()` function for modular exponentiation, which provides some timing attack resistance. However, for high-security applications:
+ECUtils uses the double-and-add algorithm for scalar multiplication, which
+is **not constant-time** — the number of additions depends on the Hamming
+weight of the scalar. For background on secure implementations, see
+[RFC 6090, Section 4](https://www.rfc-editor.org/rfc/rfc6090#section-4).
+
+For high-security applications:
 
 - Avoid exposing timing information to potential attackers
 - Consider constant-time implementations for sensitive operations
@@ -136,13 +213,6 @@ The LRU cache can potentially leak information through cache timing:
 
 - Cache hits are faster than cache misses
 - An attacker with timing access might infer information about operations
-
-For highly sensitive applications, consider disabling the cache:
-
-```python
-from ecutils import settings
-settings.LRU_CACHE_MAXSIZE = 0
-```
 
 ## Memory Security
 
@@ -170,12 +240,13 @@ All curves in ECUtils are standardized SECG curves that have been extensively an
 ## Best Practices Summary
 
 1. **Use secure random number generation** for all keys and nonces
-2. **Hash messages** before signing with an appropriate hash function
+2. **Hash messages** before signing with an appropriate hash function (or use `sign_message()`)
 3. **Validate public keys** received from untrusted sources
 4. **Derive encryption keys** from ECDH shared secrets using a KDF
 5. **Use appropriate curve sizes** for your security requirements
 6. **Keep private keys secret** and store them securely
-7. **Update regularly** to receive security fixes
+7. **Never reuse ECDSA nonces** — this leaks the private key
+8. **Update regularly** to receive security fixes
 
 ## Reporting Security Issues
 

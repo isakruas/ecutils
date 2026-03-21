@@ -1,15 +1,10 @@
 import unittest
 
-from ecutils import settings
-from ecutils.protocols import DiffieHellman
+from ecutils.protocols.diffie_hellman import DiffieHellman
 
 
 class TestDiffieHellman(unittest.TestCase):
     """Test cases for the Diffie-Hellman key exchange."""
-
-    def setUp(self):
-        """Set up test cases environment."""
-        settings.LRU_CACHE_MAXSIZE = 0
 
     def test_compute_shared_secret(self):
         """Validate that both parties compute the same shared secret."""
@@ -25,4 +20,9 @@ class TestDiffieHellman(unittest.TestCase):
         secret_bob = dh_bob.compute_shared_secret(dh_alice.public_key)
 
         # The secrets should match
-        self.assertEqual(secret_alice, secret_bob, "Shared secrets should be equal.")
+        self.assertEqual(
+            secret_alice.x, secret_bob.x, "Shared secrets should be equal."
+        )
+        self.assertEqual(
+            secret_alice.y, secret_bob.y, "Shared secrets should be equal."
+        )

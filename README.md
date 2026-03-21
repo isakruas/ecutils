@@ -1,103 +1,196 @@
 # ecutils
 
-**A Pythonic Elliptic Curve Cryptography Library**
+Python Library for Elliptic Curve Cryptography: key exchanges (Diffie-Hellman, Massey-Omura), ECDSA signatures, and Koblitz encoding. Suitable for crypto education and secure systems.
 
 [![CI](https://github.com/isakruas/ecutils/actions/workflows/ci.yml/badge.svg)](https://github.com/isakruas/ecutils/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/ecutils/badge/?version=latest)](https://ecutils.readthedocs.io/en/stable/?badge=latest)
 [![PyPI Version](https://img.shields.io/pypi/v/ecutils.svg)](https://pypi.python.org/pypi/ecutils/)
+[![PyPI Downloads](https://static.pepy.tech/badge/ecutils/week)](https://pepy.tech/project/ecutils)
 [![PyPI Downloads](https://static.pepy.tech/badge/ecutils/month)](https://pepy.tech/project/ecutils)
 [![codecov](https://codecov.io/gh/isakruas/ecutils/branch/master/graph/badge.svg)](https://codecov.io/gh/isakruas/ecutils)
 
-`ecutils` is a pure Python library that provides a clean and straightforward interface for elliptic curve cryptography (ECC). Designed for educational purposes and for building secure systems, it implements common ECC operations, algorithms, and protocols with a focus on readability and ease of use.
-
-## Features
-
-- **Core Operations:** Point addition, doubling, and scalar multiplication on various curves.
-- **Standard Curves:** Pre-configured parameters for `secp192k1`, `secp192r1`, `secp224k1`, `secp224r1`, `secp256k1`, `secp256r1`, `secp384r1`, and `secp521r1`.
-- **Digital Signatures:** Implementation of the Elliptic Curve Digital Signature Algorithm (ECDSA).
-- **Key Exchange Protocols:** Secure key exchange using Diffie-Hellman (ECDH) and Massey-Omura.
-- **Message Encoding:** Koblitz's method for encoding messages to and from curve points.
-- **Performance:** Optimized with LRU cache and Jacobian (projective) coordinates for faster computations.
-- **Pure Python:** No external dependencies required.
-
 ## Installation
-
-Install `ecutils` directly from PyPI:
 
 ```bash
 pip install ecutils
 ```
 
-## Quickstart: Digital Signatures (ECDSA)
-
-Here's a quick example of how to generate and verify a digital signature.
+## Quick start
 
 ```python
-import hashlib
-import secrets
-from ecutils.algorithms import DigitalSignature
+from ecutils import Point, get_curve, get_generator
 
-# 1. Generate a secure private key
-# In a real application, this should be a securely generated and stored key.
-private_key = secrets.randbits(256)
+curve = get_curve("secp256k1")
+G = get_generator("secp256k1")
 
-# 2. Create a DigitalSignature instance
-# This automatically derives the public key.
-ds = DigitalSignature(private_key, curve_name="secp256r1")
+# Private key → public key
+private_key = 0xDEADBEEFCAFE
+public_key = private_key * G
 
-# 3. Prepare the message
-# Always hash the message before signing.
-message = b"This is a message to be signed."
-message_hash = int.from_bytes(hashlib.sha256(message).digest(), "big")
-
-# 4. Generate the signature
-r, s = ds.generate_signature(message_hash)
-print(f"Signature: (r={r}, s={s})")
-
-# 5. Verify the signature
-# This step would typically be done by the receiver, using the sender's public key.
-is_valid = ds.verify_signature(ds.public_key, message_hash, r, s)
-
-print(f"Signature is valid: {is_valid}")
-# Output: Signature is valid: True
+print(public_key)                # Point(x=..., y=...)
+print(public_key.is_on_curve())  # True
 ```
 
-For more examples, including key exchange and message encoding, please check out our full [**documentation**](https://ecutils.readthedocs.io/en/stable/).
+## Features
 
-## Performance
+### Core
 
-ECUtils is optimized for performance using LRU caching and Jacobian coordinates. Here's a sample of signature operations on secp256r1:
+Arithmetic operations on elliptic curves `y² = x³ + ax + b (mod p)` with two internal coordinate systems.
 
-| Configuration | Signature Generation | Signature Verification |
-|---------------|---------------------|------------------------|
-| Jacobian + LRU Cache | 0.02 ms | 0.04 ms |
-| Jacobian (no cache) | 17.35 ms | 53.48 ms |
-| Affine + LRU Cache | 0.07 ms | 0.11 ms |
-| Affine (no cache) | 17.24 ms | 51.21 ms |
+```python
+from ecutils import Point, CurveParams, CoordinateSystem
 
-For complete benchmarks across all curves and operations, see the [Benchmarks documentation](https://ecutils.readthedocs.io/en/stable/benchmarks/).
+# Jacobian (default — faster)
+curve = CurveParams(p=23, a=1, b=1, n=28, h=1)
 
-## Supported Curves
+# Affine (explicit)
+curve = CurveParams(p=23, a=1, b=1, n=28, h=1, coord=CoordinateSystem.AFFINE)
 
-| Curve | Key Size | Use Case |
-|-------|----------|----------|
-| secp192k1 | 192-bit | Legacy systems |
-| secp192r1 | 192-bit | Legacy systems |
-| secp224k1 | 224-bit | Moderate security |
-| secp224r1 | 224-bit | Moderate security |
-| secp256k1 | 256-bit | Bitcoin, Ethereum |
-| secp256r1 | 256-bit | TLS, general purpose |
-| secp384r1 | 384-bit | High security |
-| secp521r1 | 521-bit | Maximum security |
+P = Point(0, 1, curve)
+Q = Point(6, 19, curve)
 
-## Documentation
+P + Q       # addition
+P - Q       # subtraction
+-P          # negation (additive inverse)
+5 * P       # scalar multiplication
+P * 5       # scalar multiplication (commutative)
+P == Q      # equality
+```
 
-- [Installation Guide](https://ecutils.readthedocs.io/en/stable/installation/)
-- [Usage Examples](https://ecutils.readthedocs.io/en/stable/usage/)
-- [Configuration](https://ecutils.readthedocs.io/en/stable/configuration/)
-- [API Reference](https://ecutils.readthedocs.io/en/stable/reference/core/)
-- [Security Considerations](https://ecutils.readthedocs.io/en/stable/security/)
-- [Benchmarks](https://ecutils.readthedocs.io/en/stable/benchmarks/)
+Curves are validated automatically — singular curves (4a³ + 27b² ≡ 0 mod p) are rejected:
+
+```python
+CurveParams(p=23, a=0, b=0, n=1)  # ❌ ValueError: singular curve
+```
+
+Points are validated on construction:
+
+```python
+Point(0, 1, curve)   # ✅ valid
+Point(0, 5, curve)   # ❌ ValueError: not on the curve
+Point(curve=curve)   # ✅ point at infinity (identity)
+```
+
+Point compression and decompression:
+
+```python
+x, parity = P.compress()                      # (x, y_parity)
+recovered = Point.decompress(x, parity, curve) # full point
+assert recovered == P
+```
+
+### Pre-defined curves
+
+```python
+from ecutils import get_curve, get_generator
+
+curve = get_curve("secp256k1")
+G = get_generator("secp256k1")
+```
+
+Available curves: `secp192k1`, `secp192r1`, `secp224k1`, `secp224r1`, `secp256k1`, `secp256r1`, `secp384r1`, `secp521r1`.
+
+### Protocols
+
+#### Diffie-Hellman (ECDH)
+
+Key exchange between two parties.
+
+```python
+from ecutils import DiffieHellman
+
+alice = DiffieHellman(private_key=0xA1, curve_name="secp256k1")
+bob   = DiffieHellman(private_key=0xB2, curve_name="secp256k1")
+
+# Each party shares their public key
+shared_alice = alice.compute_shared_secret(bob.public_key)
+shared_bob   = bob.compute_shared_secret(alice.public_key)
+
+assert shared_alice == shared_bob  # same shared secret
+```
+
+#### Massey-Omura
+
+Three-pass protocol — no prior public key exchange required.
+
+```python
+from ecutils import MasseyOmura, Koblitz
+
+# Encode message as a curve point
+kob = Koblitz(curve_name="secp521r1")
+M, j = kob.encode("secret message")
+
+alice = MasseyOmura(private_key=0xA1, curve_name="secp521r1")
+bob   = MasseyOmura(private_key=0xB2, curve_name="secp521r1")
+
+# Three passes
+c1 = alice.encrypt(M)        # Alice → Bob
+c2 = bob.encrypt(c1)         # Bob → Alice
+c3 = alice.decrypt(c2)       # Alice → Bob
+plaintext = bob.decrypt(c3)  # Bob recovers M
+
+assert kob.decode(plaintext, j) == "secret message"
+```
+
+### Algorithms
+
+#### Digital Signature (ECDSA)
+
+```python
+from ecutils import DigitalSignature
+
+signer = DigitalSignature(private_key=123456789, curve_name="secp256k1")
+
+# Sign (SHA-256 hashing is done automatically)
+r, s = signer.sign_message(b"hello")
+
+# Verify
+assert signer.verify_message(signer.public_key, b"hello", r, s)
+```
+
+For manual hashing, use `sign(message_hash)` and `verify(pub, message_hash, r, s)` directly.
+
+#### Koblitz (message encoding)
+
+Encode text as curve points and decode back.
+
+```python
+from ecutils import Koblitz
+
+kob = Koblitz(curve_name="secp521r1")
+
+point, j = kob.encode("Hello, world!")
+text = kob.decode(point, j)
+
+assert text == "Hello, world!"
+```
+
+## Project structure
+
+![ECUtils Module Structure](docs/assets/module_structure.svg)
+
+```
+ecutils/
+├── __init__.py                  # Public API
+├── py.typed                     # PEP 561 — type checker support
+├── core/
+│   ├── curve.py                 # CurveParams, CoordinateSystem
+│   ├── point.py                 # Point
+│   └── arithmetic/
+│       ├── affine.py            # affine coordinate arithmetic
+│       └── jacobian.py          # Jacobian coordinate arithmetic
+├── curves/
+│   └── registry.py              # pre-defined curves, get_curve(), get_generator()
+├── protocols/
+│   ├── diffie_hellman.py        # DiffieHellman
+│   └── massey_omura.py          # MasseyOmura
+├── algorithms/
+│   ├── digital_signature.py     # DigitalSignature (ECDSA)
+│   └── koblitz.py               # Koblitz
+└── utils/
+    ├── settings.py              # global settings
+    └── math.py                  # quadratic residue, modular square root
+```
 
 ## Contributing
 
