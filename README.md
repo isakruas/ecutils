@@ -1,10 +1,11 @@
 # ecutils
 
-A pure Python library for Elliptic Curve Cryptography (ECC). Designed for educational purposes and for building secure systems.
+Python Library for Elliptic Curve Cryptography: key exchanges (Diffie-Hellman, Massey-Omura), ECDSA signatures, and Koblitz encoding. Suitable for crypto education and secure systems.
 
 [![CI](https://github.com/isakruas/ecutils/actions/workflows/ci.yml/badge.svg)](https://github.com/isakruas/ecutils/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/ecutils/badge/?version=latest)](https://ecutils.readthedocs.io/en/stable/?badge=latest)
 [![PyPI Version](https://img.shields.io/pypi/v/ecutils.svg)](https://pypi.python.org/pypi/ecutils/)
+[![PyPI Downloads](https://static.pepy.tech/badge/ecutils/week)](https://pepy.tech/project/ecutils)
 [![PyPI Downloads](https://static.pepy.tech/badge/ecutils/month)](https://pepy.tech/project/ecutils)
 [![codecov](https://codecov.io/gh/isakruas/ecutils/branch/master/graph/badge.svg)](https://codecov.io/gh/isakruas/ecutils)
 
