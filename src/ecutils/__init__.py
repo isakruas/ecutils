@@ -16,6 +16,7 @@ from ecutils.algorithms.digital_signature import DigitalSignature
 from ecutils.algorithms.koblitz import Koblitz
 from ecutils.core.curve import CoordinateSystem, CurveParams
 from ecutils.core.point import Point
+from ecutils.core.validation import same_domain, validate_public_key
 from ecutils.curves.registry import get_curve, get_generator
 
 # Protocols
@@ -25,7 +26,7 @@ from ecutils.protocols.massey_omura import MasseyOmura
 # Utilities
 from ecutils.utils.math import is_quadratic_residue, modular_sqrt
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 __all__ = [
     # Core
@@ -34,6 +35,8 @@ __all__ = [
     "Point",
     "get_curve",
     "get_generator",
+    "same_domain",
+    "validate_public_key",
     # Algorithms
     "DigitalSignature",
     "Koblitz",

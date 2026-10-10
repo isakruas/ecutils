@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from typing import Any
 
 from ecutils.core.point import Point
+from ecutils.core.validation import validate_public_key
 from ecutils.curves.registry import get_curve, get_generator
 
 
@@ -107,11 +108,13 @@ class DigitalSignature:
             ``True`` if the signature is valid, ``False`` otherwise.
 
         Raises:
-            ValueError: If ``r`` or ``s`` are outside ``[1, n-1]``.
+            ValueError: If ``r`` or ``s`` are outside ``[1, n-1]``, or the
+                public key is not a valid point on the configured curve.
         """
         n = self._curve.n
         if not (1 <= r < n and 1 <= s < n):
             raise ValueError("r or s are not in the valid range [1, n-1].")
+        validate_public_key(public_key, self._curve)
 
         G = self._G
         w = pow(s, -1, n)

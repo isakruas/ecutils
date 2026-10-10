@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.1] - 2026-10-10
+
+### Security
+- **ECDH peer-domain validation** — `DiffieHellman.compute_shared_secret()` now validates the peer public key against the locally configured curve before multiplying. Previously a `Point` carrying foreign `CurveParams` with a small order `r` caused the private key to be reduced modulo `r`, leaking `d mod r` (residues combinable via the CRT). Identity shared secrets are rejected. Reported by FikreSekhel.
+- **Massey-Omura / ECDSA** — `MasseyOmura.encrypt()`/`decrypt()` and `DigitalSignature.verify()` apply the same public-key validation.
+- **Canonical coordinates** — the `Point` constructor (and therefore `from_sec1()`/`decompress()`) rejects coordinates outside `[0, p-1]`, e.g. a compressed SEC 1 encoding with `x = p + 1`.
+
+### Added
+- `validate_public_key(point, curve)` and `same_domain(a, b)` helpers (`ecutils.core.validation`, also exported from `ecutils` and `ecutils.core`), performing domain binding, non-identity, range, on-curve and (for `h > 1`) subgroup checks.
+
+### Changed
+- The methods above now raise `ValueError` for points from another curve or without `CurveParams`, and `Point(...)` raises `ValueError` for coordinates `< 0` or `≥ p`. Code that only uses points on the configured curve is unaffected.
+- `docs/security.md` documents the public-key validation behaviour.
+
 ## [v2.0.0] - 2026-03-20
 
 ### Breaking Changes
