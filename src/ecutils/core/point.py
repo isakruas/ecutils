@@ -57,6 +57,12 @@ class Point:
         # Without curve params we can't validate — skip silently.
         if self.curve is None:
             return
+        # Coordinates must be canonical field elements: 0 ≤ x, y < p.
+        if not (0 <= self.x < self.curve.p and 0 <= self.y < self.curve.p):
+            raise ValueError(
+                f"Point({self.x}, {self.y}) coordinates must be in the range "
+                f"[0, p-1] for p={self.curve.p}."
+            )
         lhs = pow(self.y, 2, self.curve.p)
         rhs = (
             pow(self.x, 3, self.curve.p) + self.curve.a * self.x + self.curve.b

@@ -145,7 +145,31 @@ The security of ECDH is based on the **Elliptic Curve Discrete Logarithm Problem
 
 ### Public Key Validation
 
-Points are automatically validated on construction when curve parameters are provided:
+A `Point` carries its own `CurveParams`, and scalar multiplication reduces the
+scalar modulo that point's order *n*. If a peer could supply a point on a
+foreign curve with a small order *r*, multiplying it by your private key would
+leak `d mod r`. For this reason `DiffieHellman.compute_shared_secret`,
+`MasseyOmura.encrypt`/`decrypt` and `DigitalSignature.verify` validate every
+incoming point against the configured curve. They raise `ValueError` if:
+
+- the curve parameters (`p`, `a`, `b`, `n`, `h`) differ from the configured curve;
+- the point is the point at infinity;
+- a coordinate is outside `[0, p-1]`;
+- the point is not on the curve;
+- for curves with cofactor `h > 1`, the point is not in the order-*n* subgroup.
+
+`compute_shared_secret` also rejects a shared secret equal to the point at infinity.
+
+Use the same check in your own code when handling untrusted points:
+
+```python
+from ecutils import get_curve, validate_public_key
+
+validate_public_key(untrusted_point, get_curve("secp256k1"))  # raises ValueError
+```
+
+Points are also validated on construction when curve parameters are provided
+(coordinates in `[0, p-1]` and on the curve):
 
 ```python
 from ecutils import Point, get_curve

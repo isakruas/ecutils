@@ -19,7 +19,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ecutils.core.point import Point
-from ecutils.curves.registry import get_generator
+from ecutils.core.validation import validate_public_key
+from ecutils.curves.registry import get_curve, get_generator
 
 
 @dataclass(frozen=True)
@@ -59,10 +60,24 @@ class DiffieHellman:
     def compute_shared_secret(self, other_public_key: Point) -> Point:
         """Compute the shared secret from another party's public key.
 
+        The peer key is validated against the locally configured curve
+        before any multiplication (SEC 1 §3.2.2.1).  Without this check a
+        peer could supply a Point on a foreign curve with small order *r*,
+        and the result ``(d mod r) * Q`` would leak the residue of the
+        private key modulo *r*.
+
         Args:
             other_public_key: The other party's public key point.
 
         Returns:
             The shared secret point ``private_key * other_public_key``.
+
+        Raises:
+            ValueError: If the public key is invalid or the shared secret
+                is the point at infinity.
         """
-        return self.private_key * other_public_key
+        validate_public_key(other_public_key, get_curve(self.curve_name))
+        secret = self.private_key * other_public_key
+        if secret.is_identity:
+            raise ValueError("Shared secret is the point at infinity.")
+        return secret

@@ -36,6 +36,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ecutils.core.point import Point
+from ecutils.core.validation import validate_public_key
 from ecutils.curves.registry import get_curve
 
 
@@ -80,12 +81,19 @@ class MasseyOmura:
     def encrypt(self, point: Point) -> Point:
         """Encrypt (multiply) a point with the private key.
 
+        The incoming point is validated against the configured curve so a
+        peer cannot make the private key be reduced modulo a foreign order.
+
         Args:
             point: A curve point (message or partially encrypted).
 
         Returns:
             ``private_key * point``
+
+        Raises:
+            ValueError: If the point does not belong to the configured curve.
         """
+        validate_public_key(point, self._curve)
         return self.private_key * point
 
     def decrypt(self, point: Point) -> Point:
@@ -96,5 +104,9 @@ class MasseyOmura:
 
         Returns:
             ``private_key⁻¹ * point``
+
+        Raises:
+            ValueError: If the point does not belong to the configured curve.
         """
+        validate_public_key(point, self._curve)
         return self._inverse_key * point
